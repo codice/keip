@@ -1,11 +1,8 @@
 {
   "parent": {
-    "apiVersion": "keip.octo.com/v1alpha1",
+    "apiVersion": "keip.codice.org/v1alpha1",
     "kind": "IntegrationRoute",
     "metadata": {
-      "annotations": {
-        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"keip.octo.com/v1alpha1\",\"kind\":\"IntegrationRoute\",\"metadata\":{\"annotations\":{},\"name\":\"testroute\",\"namespace\":\"demo\"},\"spec\":{\"annotations\":{\"aKey1\":\"aValue1\"},\"labels\":{\"firstKey\":\"firstValue\"},\"persistentVolumeClaims\":[{\"claimName\":\"testroute-pvc\",\"mountPath\":\"/tmp/testdir\"}],\"propSources\":[{\"name\":\"testroute-props\"},{\"labels\":{\"group\":\"ir-common\"}}],\"replicas\":2,\"routeConfigMap\":\"testroute-xml\",\"secretSources\":[\"testroute-secret\"]}}\n"
-      },
       "creationTimestamp": "2023-09-06T01:16:27Z",
       "generation": 1,
       "name": "testroute",
@@ -114,7 +111,7 @@
           "type": "Ready"
         },
         {
-          "message": "latest ControllerRevision: integrationroutes.keip.octo.com-f09ae6b579e26c5b591f2305d1daf1024e293fa7",
+          "message": "latest ControllerRevision: integrationroutes.keip.codice.org-f09ae6b579e26c5b591f2305d1daf1024e293fa7",
           "reason": "OnLatestRevision",
           "status": "True",
           "type": "Updated"

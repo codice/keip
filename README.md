@@ -128,7 +128,7 @@ EOF
 
 ```shell
 cat <<'EOF' | kubectl create -f -
-apiVersion: keip.octo.com/v1alpha1
+apiVersion: keip.codice.org/v1alpha1
 kind: IntegrationRoute
 metadata:
   name: example-route

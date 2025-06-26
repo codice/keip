@@ -6,7 +6,7 @@ metadata:
 spec:
   generateSelector: true
   parentResource:
-    apiVersion: keip.octo.com/v1alpha1
+    apiVersion: keip.codice.org/v1alpha1
     resource: integrationroutes
     revisionHistory:
       fieldPaths:

@@ -18,7 +18,7 @@ kubectl apply -k .
 
 This should result in the creation of the following resources:
 
-- IntegrationRoute `keip.octo.com/v1alpha1/testroute`: The custom resource representing a Spring Integration
+- IntegrationRoute `keip.codice.org/v1alpha1/testroute`: The custom resource representing a Spring Integration
   application.
 - ConfigMap `testroute-xml`: Contains the Spring Integration XML configuration.
 - ConfigMap `testroute-props`: Contains the application's configurable properties.

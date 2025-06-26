@@ -10,9 +10,9 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
-    <groupId>com.octo.keip</groupId>
+    <groupId>org.codice.keip</groupId>
     <artifactId>minimal-app</artifactId>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
 
     <properties>
         <docker.registry>ghcr.io/codice</docker.registry>

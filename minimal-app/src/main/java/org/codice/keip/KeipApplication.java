@@ -1,4 +1,4 @@
-package com.octo.keip;
+package org.codice.keip;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

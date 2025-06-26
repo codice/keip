@@ -26,7 +26,7 @@ metadata:
   name: testroute
 spec:
   selector:
-    app.kubernetes.io/instance: integrationroute-testroute
+    app.kubernetes.io/name: testroute
   ports:
     - name: https-port
       port: 8443

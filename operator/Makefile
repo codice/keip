@@ -1,6 +1,6 @@
 VERSION ?= 0.12.1
 GIT_TAG := operator_v$(VERSION)
-KEIP_INTEGRATION_IMAGE ?= ghcr.io/octoconsulting/keip/minimal-app:latest
+KEIP_INTEGRATION_IMAGE ?= ghcr.io/codice/keip/minimal-app:latest
 
 KUBECTL := kubectl
 KUBECTL_DELETE := $(KUBECTL) delete --ignore-not-found

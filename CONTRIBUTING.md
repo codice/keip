@@ -1,7 +1,7 @@
 # Contributing to keip
 First off, thanks for taking the time to contribute! 🎉
 
-The following is a set of guidelines for contributing to keip, hosted in the OctoConsulting Organization on GitHub. 
+The following is a set of guidelines for contributing to keip, hosted in the Codice Organization on GitHub. 
 These are mostly guidelines, not rules. Use your best judgment, and feel free to propose changes to this document in a 
 pull request.
 
@@ -9,7 +9,7 @@ pull request.
 
 ### Reporting Bugs
 
-If you find a bug, please report it by opening a [GitHub Issue](https://github.com/OctoConsulting/keip/issues). When you do so, please include:
+If you find a bug, please report it by opening a [GitHub Issue](https://github.com/codice/keip/issues). When you do so, please include:
 - A clear and descriptive title.
 - Steps to reproduce the problem.
 - Expected behavior and actual behavior.

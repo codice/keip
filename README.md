@@ -1,8 +1,8 @@
 # keip (Kubernetes Enterprise Integration Patterns)
 
-[![operator](https://github.com/OctoConsulting/keip/actions/workflows/operator.yml/badge.svg?branch=main)](https://github.com/OctoConsulting/keip/actions/workflows/operator.yml)
-[![webhook](https://github.com/OctoConsulting/keip/actions/workflows/webhook.yml/badge.svg?branch=main)](https://github.com/OctoConsulting/keip/actions/workflows/webhook.yml)
-[![minimal-app](https://github.com/OctoConsulting/keip/actions/workflows/minimal-app.yml/badge.svg?branch=main)](https://github.com/OctoConsulting/keip/actions/workflows/minimal-app.yml)
+[![operator](https://github.com/codice/keip/actions/workflows/operator.yml/badge.svg?branch=main)](https://github.com/codice/keip/actions/workflows/operator.yml)
+[![webhook](https://github.com/codice/keip/actions/workflows/webhook.yml/badge.svg?branch=main)](https://github.com/codice/keip/actions/workflows/webhook.yml)
+[![minimal-app](https://github.com/codice/keip/actions/workflows/minimal-app.yml/badge.svg?branch=main)](https://github.com/codice/keip/actions/workflows/minimal-app.yml)
 
 keip is a Kubernetes operator that simplifies the deployment of Spring Integration routes on Kubernetes clusters. This
 operator makes it easy to manage integration flows, enhancing scalability and resilience through Kubernetes.
@@ -28,7 +28,7 @@ operator makes it easy to manage integration flows, enhancing scalability and re
 
 1. **Clone the repository:**
    ```shell
-   git clone https://github.com/OctoConsulting/keip.git && cd keip
+   git clone https://github.com/codice/keip.git && cd keip
    ```
 
 2. **Deploy the keip operator:**

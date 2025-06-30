@@ -1,9 +1,9 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: integrationroutes.keip.octo.com
+  name: integrationroutes.keip.codice.org
 spec:
-  group: keip.octo.com
+  group: keip.codice.org
   names:
     kind: IntegrationRoute
     plural: integrationroutes

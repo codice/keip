@@ -1,4 +1,4 @@
-apiVersion: keip.octo.com/v1alpha1
+apiVersion: keip.codice.org/v1alpha1
 kind: IntegrationRoute
 metadata:
   name: testroute
@@ -26,7 +26,7 @@ metadata:
   name: testroute
 spec:
   selector:
-    app.kubernetes.io/instance: integrationroute-testroute
+    app.kubernetes.io/name: testroute
   ports:
     - name: https-port
       port: 8443

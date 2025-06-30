@@ -1,8 +1,8 @@
-VERSION ?= 0.14.1
+VERSION ?= 0.15.0
 HOST_PORT ?= 7080
 GIT_TAG := webhook_v$(VERSION)
 
-IMG_REGISTRY := ghcr.io/octoconsulting
+IMG_REGISTRY := ghcr.io/codice
 IMG_NAME := keip/route-webhook
 FULL_IMAGE_NAME := $(IMG_REGISTRY)/$(IMG_NAME):$(VERSION)
 CONTAINER_NAME := integration-route-webhook

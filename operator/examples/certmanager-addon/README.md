@@ -40,7 +40,7 @@ kubectl apply -k .
 
 This should result in the creation of the following resources:
 
-- IntegrationRoute `keip.octo.com/v1alpha1/testroute`: The custom resource representing a Spring Integration
+- IntegrationRoute `keip.codice.org/v1alpha1/testroute`: The custom resource representing a Spring Integration
   application.
 - ConfigMap `testroute-xml`: Contains the Spring Integration XML configuration.
 - Secret `pkcs12-password`: Password to the PKCS12 keystore.

@@ -1,22 +1,84 @@
-# keip (Kubernetes Enterprise Integration Patterns)
+# keip - Kubernetes Enterprise Integration Patterns
 
-[![operator](https://github.com/codice/keip/actions/workflows/operator.yml/badge.svg?branch=main)](https://github.com/codice/keip/actions/workflows/operator.yml)
-[![webhook](https://github.com/codice/keip/actions/workflows/webhook.yml/badge.svg?branch=main)](https://github.com/codice/keip/actions/workflows/webhook.yml)
-[![minimal-app](https://github.com/codice/keip/actions/workflows/minimal-app.yml/badge.svg?branch=main)](https://github.com/codice/keip/actions/workflows/minimal-app.yml)
+**The communication backbone for microservices, AI toolchains, and enterprise integration on Kubernetes.**
 
-keip is a Kubernetes operator that simplifies the deployment of Spring Integration routes on Kubernetes clusters. This
-operator makes it easy to manage integration flows, enhancing scalability and resilience through Kubernetes.
+## What is keip?
+
+keip (Kubernetes Enterprise Integration Patterns) is a Kubernetes operator that serves as the communication backbone for modern distributed systems. Whether you're orchestrating microservices, building AI toolchains, or handling traditional enterprise integration, keip transforms complex data flow challenges into simple, declarative configurations. 
+
+Instead of writing, compiling, and deploying Java applications for service communication and data integration, you can now define Spring Integration routes as Kubernetes resources and let keip handle the rest.
+
+### The Problem It Solves
+
+Modern distributed systems often need to:
+- **Microservices Communication**: Orchestrate complex service-to-service interactions, event streaming, and API workflows
+- **AI Toolchain Coordination**: Connect AI models, data pipelines, feature stores, and inference engines in sophisticated workflows  
+- **Enterprise Integration**: Move data between different systems (databases, message queues, APIs, files)
+- **Data Transformation**: Convert formats (JSON to XML, CSV to database records, etc.) and enrich data in transit
+- **Smart Routing**: Route messages based on content, rules, or dynamic conditions
+- **Resilient Operations**: Handle errors, retries, and circuit breaking gracefully
+- **Dynamic Scaling**: Scale integration workloads based on demand
+
+Traditionally, this requires:
+- Writing Java code with Spring Integration
+- Managing application lifecycle and deployments
+- Handling scaling and resilience manually
+- Complex CI/CD pipelines for every integration change
+
+### The keip Solution
+
+With keip, you define your integration logic in XML configuration and deploy it as a Kubernetes resource. The operator automatically:
+- Creates and manages the underlying Spring Boot application with Spring Integration
+- Provides access to the entire Spring ecosystem (hundreds of connectors, components, and enterprise patterns)
+- Handles Kubernetes deployment, scaling, and lifecycle
+- Provides cloud-native resilience and observability
+- Enables runtime route updates without code compilation
 
 ## Key Features
 
-- **Kubernetes Native**: Fully integrates with Kubernetes, using custom resources to manage Spring Integration routes.
-- **Ease of Use**: Allows the definition and deployment of complex integration patterns with simple Kubernetes
-  manifests.
-- **Flexibility**: Supports a range of configurations to cater to different integration requirements.
-- **Dynamic Route Definition**: Define and deploy Spring Integration routes at runtime without the need to compile code,
-  enabling greater flexibility and faster iterations.
+- **🔧 Kubernetes Native**: Fully integrates with Kubernetes using custom resources and scales with cluster capabilities
+- **🌱 Spring Ecosystem Powered**: Built on Spring Boot and Spring Integration with access to 300+ connectors and enterprise patterns
+- **⚡ No Code Compilation**: Define integration routes in XML and deploy instantly  
+- **📈 Auto-Scaling**: Leverages Kubernetes scaling capabilities for integration workloads
+- **🔄 Runtime Flexibility**: Update integration routes without rebuilding applications
+- **🏢 Enterprise Ready**: Battle-tested Spring components with comprehensive error handling and monitoring
+- **📊 Cloud-Native Observability**: Native Kubernetes monitoring and logging support
 
-## Getting Started
+## Use Cases
+
+**Microservices Communication**
+- Orchestrate complex service-to-service workflows and event-driven architectures
+- Implement saga patterns and distributed transaction coordination
+- Handle service mesh communication with intelligent routing and load balancing
+- Create resilient API gateways with circuit breakers and retry logic
+
+**AI Toolchain Integration**  
+- Coordinate multi-model inference pipelines and AI workflow orchestration
+- Connect feature stores, model registries, and real-time inference engines
+- Process training data pipelines and model deployment workflows
+- Integrate AI services with business applications and external APIs
+
+**Message Routing & Transformation**
+- Route messages between different message brokers (Kafka, RabbitMQ, etc.)
+- Transform message formats and enrich data in transit
+
+**Database Integration**  
+- Sync data between multiple databases
+- Export database records to files or APIs
+
+**File Processing**
+- Monitor directories and process incoming files
+- Convert file formats and distribute to multiple destinations  
+
+**API Integration**
+- Connect REST APIs with message queues or databases
+- Implement complex API orchestration workflows
+
+**Legacy System Integration**
+- Bridge legacy systems with modern cloud applications and microservices
+- Handle protocol translations and data format conversions
+
+## Quick Start
 
 ### Prerequisites
 
@@ -27,161 +89,115 @@ operator makes it easy to manage integration flows, enhancing scalability and re
 ### Installation
 
 1. **Clone the repository:**
-   ```shell
+   ```bash
    git clone https://github.com/codice/keip.git && cd keip
    ```
 
 2. **Deploy the keip operator:**
-   ```shell
+   ```bash
    cd operator && make deploy
    ```
 
-3. The `make deploy` target creates the `keip` and `metacontroller` namespaces and deploys the Metacontroller and
-   `IntegrationRoute` webhook pods.
+   This creates the `keip` and `metacontroller` namespaces and deploys the necessary components.
 
-Verify `metacontroller` pod is running:
+3. **Verify installation:**
+   ```bash
+   # Check metacontroller pod
+   kubectl -n metacontroller get po
+   
+   # Check keip webhook pod  
+   kubectl -n keip get po
+   ```
 
-```shell
-kubectl -n metacontroller get po
-```
+### Your First Integration Route
 
-Output:
+Let's create a simple integration that prints a message every 5 seconds:
 
-```
-NAME                                        READY   STATUS    RESTARTS   AGE
-metacontroller-0                            1/1     Running   0          2m31s
-```
+1. **Create the integration configuration:**
+   ```bash
+   cat <<'EOF' | kubectl create -f -
+   apiVersion: v1
+   kind: ConfigMap
+   metadata:
+     name: keip-route-xml
+   data:
+     integrationRoute.xml: |
+       <?xml version="1.0" encoding="UTF-8"?>
+       <beans xmlns="http://www.springframework.org/schema/beans"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns:int="http://www.springframework.org/schema/integration"
+              xsi:schemaLocation="http://www.springframework.org/schema/beans
+                      https://www.springframework.org/schema/beans/spring-beans.xsd
+                      http://www.springframework.org/schema/integration
+                      https://www.springframework.org/schema/integration/spring-integration.xsd">
+         
+         <int:channel id="output"/>
+         
+         <int:inbound-channel-adapter channel="output" expression="'Hello from keip every 5 seconds'">
+           <int:poller fixed-rate="5000"/>
+         </int:inbound-channel-adapter>
+         
+         <int:logging-channel-adapter channel="output" log-full-message="true"/>
+       </beans>
+   EOF
+   ```
 
-Verify `integrationroute-webhook` pod is running:
+2. **Deploy the integration route:**
+   ```bash
+   cat <<'EOF' | kubectl create -f -
+   apiVersion: keip.codice.org/v1alpha1
+   kind: IntegrationRoute
+   metadata:
+     name: example-route
+   spec:
+     routeConfigMap: keip-route-xml
+   EOF
+   ```
 
-```shell
-kubectl -n keip get po
-```
+3. **Check the status and view logs:**
+   ```bash
+   # Check route status
+   kubectl get ir
+   
+   # View the integration output
+   kubectl logs -f deployment/example-route
+   ```
 
-Output:
+You should see "Hello from keip every 5 seconds" printed regularly in the logs.
 
-```
-NAME                                        READY   STATUS    RESTARTS   AGE
-integrationroute-webhook-6644b989d5-r6htn   1/1     Running   0          2m30s
-```
+4. **Clean up:**
+   ```bash
+   kubectl delete ir example-route
+   kubectl delete cm keip-route-xml
+   ```
 
-### Customizing Your keip Container
+## Advanced Configuration
 
-Note: If this is your first time through this installation process, it may be helpful to return to this step later. This
-is generally needed for all but the simplest deployments, but it isn't necessary if you're just familiarizing yourself
-with the installation process.
+### Custom Container Images
 
-The default keip container provides only the basic components for Spring Integration. To fully utilize the potential of
-your integration routes, you will need to include additional Spring Integration components or your own Java code. See
-[README.md](keip-container-archetype%2FREADME.md) for instructions on how to create a custom container.
+The default keip container provides basic Spring Integration components. For advanced use cases, you can create custom containers with additional Spring Boot starters, Spring Integration components, or your own Java libraries:
 
-Once your new container is available, you'll need to set that name in the `keip-controller-props` ConfigMap. We'll need
-to change the value for the `integration-image` key to set it to whatever the name of your custom keip container is.
+1. Follow the instructions in [keip-container-archetype/README.md](keip-container-archetype/README.md)
+2. Add any Spring Boot starters (Spring Data, Spring Security, Spring Cloud, etc.) or custom dependencies
+3. Update the `keip-controller-props` ConfigMap to reference your custom image
+4. Restart the webhook deployment
 
-```shell
-kubectl -n keip edit configmap keip-controller-props
-```
+### Debugging
 
-Once the ConfigMap is updated, you'll need to restart the `integrationroute-webhook` pod.
-
-```shell
-kubectl -n keip rollout restart deployment/integrationroute-webhook
-```
-
-### Deploying a Spring Integration Route
-
-The keip operator requires a Spring Integration route defined in XML. This XML should be stored in a ConfigMap that the
-IntegrationRoute custom resource will reference.
-
-1. Create a ConfigMap with your XML configuration:
-
-```shell
-cat <<'EOF' | kubectl create -f -
-apiVersion: v1
-kind: ConfigMap
-metadata:
-    name: keip-route-xml
-data:
-    integrationRoute.xml: |
-        <?xml version="1.0" encoding="UTF-8"?>
-        <beans xmlns="http://www.springframework.org/schema/beans"
-                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                xmlns:int="http://www.springframework.org/schema/integration"
-                xsi:schemaLocation="http://www.springframework.org/schema/beans
-                    https://www.springframework.org/schema/beans/spring-beans.xsd
-                    http://www.springframework.org/schema/integration
-                    https://www.springframework.org/schema/integration/spring-integration.xsd">
-            <int:channel id="output"/>
-
-            <int:inbound-channel-adapter channel="output" expression="'print me every 5 seconds'">
-              <int:poller fixed-rate="5000"/>
-            </int:inbound-channel-adapter>
-      
-            <int:logging-channel-adapter
-                  channel="output"
-                  log-full-message="true"/>
-        </beans>
-EOF
-```
-
-2. Apply your IntegrationRoute using the created ConfigMap:
-
-```shell
-cat <<'EOF' | kubectl create -f -
-apiVersion: keip.codice.org/v1alpha1
-kind: IntegrationRoute
-metadata:
-  name: example-route
-spec:
-  routeConfigMap: keip-route-xml
-EOF
-```
-
-3. Check on the status of the route:
-
-```shell
-kubectl get ir
-```
-
-4. Once the route reports as ready, check the pod logs to verify the test message is printed periodically:
-
-```shell
-kubectl logs -f deployment/example-route
-```
-
-### Clean up
-
-To delete the example route:
-
-```shell
-kubectl delete ir example-route
-kubectl delete cm keip-route-xml
-```
-
-To remove the keip operator and all related resources from your cluster:
-
-```shell
-make -C operator undeploy
-```
-
-## Examples
-
-For more in-depth examples, see the [operator/examples](./operator/examples) directory.
-
-## Troubleshooting
-
-The keip webhook and metacontroller pod logs can be useful when debugging errors:
-
-```shell
+View operator logs for troubleshooting:
+```bash
 # Metacontroller logs
 kubectl -n metacontroller logs -f sts/metacontroller
 
-# Keip webhook logs
+# Keip webhook logs  
 kubectl -n keip logs -f deployments/integrationroute-webhook
 ```
 
-To increase the verbosity of the keip webhook logs, set the `LOG_LEVEL` environment variable for the deployment
-to `DEBUG` (e.g. using `kubectl -n keip edit deployments/integrationroute-webhook`).
+For verbose logging, set `LOG_LEVEL=DEBUG` in the webhook deployment.
+
+## Examples
+
+For more comprehensive examples including database integration, file processing, and message routing, see the [operator/examples](operator/examples) directory.
 
 ## Contributing
 
@@ -189,8 +205,12 @@ We welcome contributions! Please see our [contributing guidelines](CONTRIBUTING.
 
 ## Support
 
-For assistance or to report issues, please open an issue in the GitHub repository.
+For assistance or to report issues, please open an issue in this GitHub repository.
 
 ## License
 
 This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+---
+
+**Ready to simplify your enterprise integration?** Start with the [Quick Start](#quick-start) guide above!

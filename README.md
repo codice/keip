@@ -197,7 +197,8 @@ For verbose logging, set `LOG_LEVEL=DEBUG` in the webhook deployment.
 
 ## Examples
 
-For more comprehensive examples including database integration, file processing, and message routing, see the [operator/examples](operator/examples) directory.
+For more comprehensive examples including a secure HTTPS server and message routing with externalized configurations,
+see the [operator/examples](operator/examples) directory.
 
 ## Contributing
 

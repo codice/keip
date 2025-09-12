@@ -5,7 +5,7 @@ from typing import Mapping
 
 import pytest
 
-from webhook.core.sync import (
+from core.sync import (
     sync,
     VolumeConfig,
     _spring_cloud_k8s_config,
@@ -17,7 +17,7 @@ from webhook.core.sync import (
     _generate_container_env_vars,
     _get_server_ssl_config,
 )
-from webhook.test.test_webapp import load_json_as_dict
+from keip.test.test_webapp import load_json_as_dict
 
 JDK_OPTIONS_ENV_NAME = "JDK_JAVA_OPTIONS"
 

@@ -5,11 +5,11 @@ from typing import Mapping
 import pytest
 from starlette.testclient import TestClient
 
-from webhook.app import app
+from app import app
 
 
 def test_status_endpoint(test_client):
-    response = test_client.get("/status")
+    response = test_client.get("/webhook/status")
 
     assert response.status_code == 200
     assert response.json() == {"status": "UP"}
@@ -20,7 +20,7 @@ def test_sync_endpoint_success(test_client):
         f"{os.path.dirname(os.path.abspath(__file__))}/json/full-route-request.json"
     )
 
-    response = test_client.post("/sync", json=request)
+    response = test_client.post("/webhook/sync", json=request)
     expected = load_json_as_dict(
         f"{os.path.dirname(os.path.abspath(__file__))}/json/full-route-response.json"
     )
@@ -34,7 +34,7 @@ def test_sync_certificate_endpoint_success(test_client):
         f"{os.path.dirname(os.path.abspath(__file__))}/json/full-cert-request.json"
     )
 
-    response = test_client.post("/addons/certmanager/sync", json=request)
+    response = test_client.post("/webhook/addons/certmanager/sync", json=request)
     expected = load_json_as_dict(
         f"{os.path.dirname(os.path.abspath(__file__))}/json/full-cert-response.json"
     )
@@ -46,8 +46,8 @@ def test_sync_certificate_endpoint_success(test_client):
 @pytest.mark.parametrize(
     "endpoint, status_code",
     [
-        ("/sync", 400),
-        ("/addons/certmanager/sync", 400),
+        ("/webhook/sync", 400),
+        ("/webhook/addons/certmanager/sync", 400),
     ],
 )
 def test_sync_endpoint_invalid_json(test_client, endpoint, status_code):
@@ -59,8 +59,8 @@ def test_sync_endpoint_invalid_json(test_client, endpoint, status_code):
 @pytest.mark.parametrize(
     "endpoint, status_code",
     [
-        ("/sync", 400),
-        ("/addons/certmanager/sync", 400),
+        ("/webhook/sync", 400),
+        ("/webhook/addons/certmanager/sync", 400),
     ],
 )
 def test_sync_endpoint_empty_body(test_client, endpoint, status_code):

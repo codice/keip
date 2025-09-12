@@ -1,4 +1,4 @@
-# Keip Integration Route Webhook
+# Keip Integration Route App
 
 A Python web server that implements
 a [lambda controller from the Metacontroller API](https://metacontroller.github.io/metacontroller/concepts.html#lambda-controller).

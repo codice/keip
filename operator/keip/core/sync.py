@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from pathlib import PurePosixPath
 from typing import List, Mapping, Optional, Any
 
-from webhook import config as cfg
+import config as cfg
 
 SECRETS_ROOT = "/etc/secrets"
 

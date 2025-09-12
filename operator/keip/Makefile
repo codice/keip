@@ -114,11 +114,11 @@ win-precommit: win-test win-format win-lint
 
 .PHONY: start-dev-server
 start-dev-server:
-	$(PYTHON) -m uvicorn --port 7080 --reload --app-dir .. webhook.app:app
+	$(PYTHON) -m uvicorn --port 7080 --reload --app-dir .. app:app
 
 .PHONY: win-start-dev-server
 win-start-dev-server:
-	$(WIN_PYTHON) -m uvicorn --port 7080 --reload --app-dir .. webhook.app:app
+	$(WIN_PYTHON) -m uvicorn --port 7080 --reload --app-dir .. app:app
 
 .PHONY: deploy
 deploy: build

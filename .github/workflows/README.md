@@ -2,7 +2,7 @@
 This monorepo consists of 3 artifacts that are versioned, built, and released separately.
 - minimal-app
 - operator
-- operator/webhook
+- operator/keip
 
 ## PR builds
 When a PR is opened or updated, it will determine if any files changed in each of the sub-project directories.

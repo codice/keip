@@ -6,7 +6,7 @@ on:
       - operator/**
       - .github/workflows/operator.yml
       - .github/workflows/scripts
-      - "!operator/webhook/**"
+      - "!operator/keip/**"
       - '!**.md'
       - '!operator/examples/**'
   push:
@@ -14,7 +14,7 @@ on:
       - main
     paths:
       - operator/**
-      - "!operator/webhook/**"
+      - "!operator/keip/**"
       - '!**.md'
       - '!operator/examples/**'
 

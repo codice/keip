@@ -1,6 +1,6 @@
 set -eux
 
-WEBHOOK_DIR=operator/webhook
+WEBHOOK_DIR=operator/keip
 
 verify_version_bump() {
   potential_tag=$(make --no-print-directory -C $WEBHOOK_DIR get-tag)

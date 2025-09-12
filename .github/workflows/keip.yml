@@ -1,22 +1,22 @@
-name: webhook
+name: keip
 on:
   workflow_dispatch:
   pull_request:
     paths:
-      - operator/webhook/**
-      - .github/workflows/webhook.yml
+      - operator/keip/**
+      - .github/workflows/keip.yml
       - .github/workflows/scripts
       - '!**.md'
   push:
     branches:
       - main
     paths:
-      - operator/webhook/**
+      - operator/keip/**
       - '!**.md'
 
 env:
   PYTHON_VERSION: 3.11
-  WORKING_DIR: ./operator/webhook
+  WORKING_DIR: ./operator/keip
 
 jobs:
   verify-versions:
@@ -24,8 +24,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: sh .github/workflows/scripts/verify_webhook_releasable.sh
-        name: Verify webhook is in a state to be released on merge
+      - run: sh .github/workflows/scripts/verify_keip_releasable.sh
+        name: Verify keip is in a state to be released on merge
   test:
     name: unit test
     runs-on: ubuntu-latest

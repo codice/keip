@@ -9,5 +9,5 @@ verify_version_bump() {
   sh .github/workflows/scripts/shared/verify_changes_update_version.sh $potential_tag $WEBHOOK_DIR '-e Makefile$'
 }
 
-sh .github/workflows/scripts/shared/verify_current_webhook_img.sh
+sh .github/workflows/scripts/shared/verify_current_keip_img.sh
 verify_version_bump

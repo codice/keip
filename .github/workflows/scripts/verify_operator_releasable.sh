@@ -10,5 +10,5 @@ verify_version_bump() {
   -e ^operator/keip/'
 }
 
-sh .github/workflows/scripts/shared/verify_current_webhook_img.sh
+sh .github/workflows/scripts/shared/verify_current_keip_img.sh
 verify_version_bump

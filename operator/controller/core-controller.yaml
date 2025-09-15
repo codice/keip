@@ -31,7 +31,7 @@ spec:
   hooks:
     sync:
       webhook:
-        url: http://integrationroute-webhook.keip/sync
+        url: http://integrationroute-webhook.keip/webhook/sync
         timeout: 10s
 ---
 apiVersion: v1

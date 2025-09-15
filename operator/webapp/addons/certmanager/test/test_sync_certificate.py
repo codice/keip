@@ -5,7 +5,7 @@ from typing import Mapping
 
 import pytest
 
-from keip.addons.certmanager.main import (
+from webapp.addons.certmanager.main import (
     sync_certificate,
     _get_annotation_vals_as_list,
 )

@@ -17,7 +17,7 @@ from core.sync import (
     _generate_container_env_vars,
     _get_server_ssl_config,
 )
-from keip.test.test_webapp import load_json_as_dict
+from webapp.routes.test.test_webapp import load_json_as_dict
 
 JDK_OPTIONS_ENV_NAME = "JDK_JAVA_OPTIONS"
 

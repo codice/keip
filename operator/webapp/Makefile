@@ -1,11 +1,11 @@
 VERSION ?= 0.16.0
 HOST_PORT ?= 7080
-GIT_TAG := webhook_v$(VERSION)
+GIT_TAG := webapp_v$(VERSION)
 
 IMG_REGISTRY := ghcr.io/codice
-IMG_NAME := keip/route-webhook
+IMG_NAME := keip/webapp
 FULL_IMAGE_NAME := $(IMG_REGISTRY)/$(IMG_NAME):$(VERSION)
-CONTAINER_NAME := integration-route-webhook
+CONTAINER_NAME := integration-route-webapp
 TEST_COVERAGE_DIR := .test_coverage
 TEST_COVERAGE_FILE := $(TEST_COVERAGE_DIR)/.coverage
 EXTRA_PYTEST_ARGS ?=

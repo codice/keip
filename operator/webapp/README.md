@@ -1,19 +1,19 @@
-# Keip Integration Route Webhook
+# Keip Integration Route App
 
-A Python web server that implements
-a [lambda controller from the Metacontroller API](https://metacontroller.github.io/metacontroller/concepts.html#lambda-controller).
+A Python web server that implements the following endpoints:
+- `/webhook`: A [lambda controller from the Metacontroller API](https://metacontroller.github.io/metacontroller/concepts.html#lambda-controller).
 The webhook will be called as part of the Metacontroller control loop when `IntegrationRoute` parent
 resources are detected.
 
-The webhook contains two endpoints, `/sync` and `/addons/certmanager/sync`.
+  The webhook contains two endpoints, `/webhook/sync` and `/webhook/addons/certmanager/sync`.
 
-- `/sync`: The core logic that creates a `Deployment` from `IntegrationRoute` resources.
-- `/addons/certmanager/sync`: An add-on that creates
-  a [cert-manager.io/v1.Certificate](https://cert-manager.io/docs/reference/api-docs/#cert-manager.io/v1.Certificate)
-  based on annotations in an `IntegrationRoute`.
+  - `/webhook/sync`: The core logic that creates a `Deployment` from `IntegrationRoute` resources.
+  - `/webhook/addons/certmanager/sync`: An add-on that creates
+    a [cert-manager.io/v1.Certificate](https://cert-manager.io/docs/reference/api-docs/#cert-manager.io/v1.Certificate)
+    based on annotations in an `IntegrationRoute`.
 
-The format for the request and response JSON payloads can be
-seen [here](https://metacontroller.github.io/metacontroller/api/compositecontroller.html#sync-hook)
+  The format for the request and response JSON payloads can be
+  seen [here](https://metacontroller.github.io/metacontroller/api/compositecontroller.html#sync-hook)
 
 ## Developer Guide
 

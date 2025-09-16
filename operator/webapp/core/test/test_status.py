@@ -3,8 +3,8 @@ from typing import Mapping, List, MutableMapping
 
 import pytest
 
-import webhook.core.sync
-from webhook.core.sync import (
+import core.sync
+from core.sync import (
     _compute_status,
     _get_status_ready_condition,
 )
@@ -176,7 +176,7 @@ def test_ready_status_with_parent_different_ready_condition_generate_new_status(
 
 @pytest.fixture()
 def patch_datetime(monkeypatch):
-    monkeypatch.setattr(webhook.core.sync, "datetime", MockDateTime)
+    monkeypatch.setattr(core.sync, "datetime", MockDateTime)
 
 
 class MockDateTime(datetime):

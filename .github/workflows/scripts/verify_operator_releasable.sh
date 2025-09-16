@@ -7,8 +7,8 @@ verify_version_bump() {
   sh .github/workflows/scripts/shared/verify_changes_update_version.sh $potential_tag $OPERATOR_DIR \
   '-e ^operator/examples/
   -e ^operator/example/
-  -e ^operator/webhook/'
+  -e ^operator/webapp/'
 }
 
-sh .github/workflows/scripts/shared/verify_current_webhook_img.sh
+sh .github/workflows/scripts/shared/verify_current_webapp_img.sh
 verify_version_bump

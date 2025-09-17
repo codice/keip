@@ -1,0 +1,84 @@
+import logging
+import re
+from pathlib import Path
+
+from dataclasses import asdict
+
+from starlette.exceptions import HTTPException
+from starlette.responses import JSONResponse
+from starlette.requests import Request
+from starlette.routing import Route, Router
+
+from models import RouteData
+from core import k8s_client
+from logconf import LOG_CONF
+
+
+logging.config.dictConfig(LOG_CONF)
+_LOGGER = logging.getLogger(__name__)
+
+
+async def deploy_route(request: Request):
+    _LOGGER.info("Received deployment request")
+    try:
+        async with request.form() as form:
+            if "upload_file" not in form:
+                raise HTTPException(
+                    status_code=400, detail="Missing request parameter: upload_file"
+                )
+
+            filename = Path(form["upload_file"].filename).stem
+            route_file = await form["upload_file"].read()
+            content_type = form["upload_file"].content_type
+
+        if content_type is None or content_type.lower() != "application/xml":
+            _LOGGER.warning("Invalid content type: %s", content_type)
+            raise HTTPException(
+                status_code=400,
+                detail="No Integration Route XML file found in form data",
+            )
+
+        route_data = RouteData(
+            route_name=_generate_route_name(filename),
+            route_file=route_file.decode("utf-8"),
+        )
+
+        _LOGGER.info("Creating resources for route: %s", route_data.route_name)
+        created_resources = k8s_client.create_route_resources(route_data)
+
+        _LOGGER.debug("Created new resources: %s", created_resources)
+        return JSONResponse(
+            [asdict(resource) for resource in created_resources], status_code=201
+        )
+
+    except HTTPException:
+        raise
+    except UnicodeDecodeError:
+        _LOGGER.warning("Invalid XML file encoding")
+        raise HTTPException(status_code=400, detail="Invalid XML file encoding")
+    except Exception as e:
+        _LOGGER.error("An unexpected error occurred: %s", e, exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
+async def get_cluster_health(request: Request):
+    _LOGGER.info("Received cluster health request")
+    if k8s_client.is_cluster_ready():
+        return JSONResponse(content={"status": "UP"}, status_code=200)
+    else:
+        return JSONResponse(content={"status": "DOWN"}, status_code=200)
+
+
+def _generate_route_name(filename: str) -> str:
+    filename = filename.replace("_", "-")
+    filename = re.sub(r"[^a-z0-9-]", "", filename.lower())
+    filename = filename.strip("-")
+    return filename
+
+
+router = Router(
+    [
+        Route("/", endpoint=deploy_route, methods=["POST"]),
+        Route("/cluster-health", endpoint=get_cluster_health, methods=["GET"]),
+    ]
+)

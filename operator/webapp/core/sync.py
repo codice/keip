@@ -256,7 +256,6 @@ def _spring_app_config_env_var(parent) -> Optional[Mapping]:
 
 
 def _get_keystore_password_env(tls) -> Mapping[str, Any]:
-
     keystore = tls.get("keystore")
 
     if not keystore:
@@ -276,7 +275,6 @@ def _get_keystore_password_env(tls) -> Mapping[str, Any]:
 
 
 def _get_java_jdk_options(tls) -> Optional[Mapping[str, str]]:
-
     truststore = tls.get("truststore")
 
     if not truststore:
@@ -312,7 +310,6 @@ def _generate_container_env_vars(parent) -> List[Mapping[str, str]]:
 
 
 def _create_pod_template(parent, labels, integration_image) -> Mapping[str, Any]:
-
     vol_config = VolumeConfig(parent["spec"])
 
     has_tls = _has_tls(parent)
@@ -429,7 +426,7 @@ def _new_actuator_service(parent):
                 "integration-route": parent_metadata["name"],
                 "prometheus-metrics-enabled": "true",
             },
-            "name": f'{parent_metadata["name"]}-actuator',
+            "name": f"{parent_metadata['name']}-actuator",
         },
         "spec": {
             "ports": [

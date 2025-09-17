@@ -46,6 +46,7 @@ metadata:
   namespace: keip
 spec:
   replicas: 1
+  service-account: integrationroute-service
   selector:
     matchLabels:
       app: integrationroute-webhook

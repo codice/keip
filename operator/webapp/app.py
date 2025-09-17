@@ -4,7 +4,7 @@ from starlette.applications import Starlette
 from starlette.types import ASGIApp
 
 import config as cfg
-from routes import webhook
+from routes import webhook, deploy
 from logconf import LOG_CONF
 
 
@@ -19,6 +19,7 @@ def create_app() -> ASGIApp:
 
     app = Starlette(debug=cfg.DEBUG)
     app.mount("/webhook", webhook.router)
+    app.mount("/deploy", deploy.router)
 
     return app
 

@@ -137,37 +137,3 @@ def create_route_resources(route_data: RouteData) -> List[Resource]:
         route_data=route_data, configmap_name=route_cm.name
     )
     return [route_cm, route]
-
-
-def is_cluster_ready() -> bool:
-    if not _check_cluster_reachable():
-        _LOGGER.warning("Kubernetes client not reachable, cluster is not ready")
-        return False
-    try:
-        pods = v1.list_namespaced_pod(namespace="keip")
-        matching_pods = []
-        for pod in pods.items:
-            if pod.metadata.name.startswith(WEBHOOK_CONTROLLER_PREFIX):
-                ready = False
-                if pod.status and pod.status.conditions:
-                    for condition in pod.status.conditions:
-                        if condition.type == "Ready":
-                            ready = condition.status
-                            break
-
-                matching_pods.append(
-                    {
-                        "name": pod.metadata.name,
-                        "ready": ready,
-                        "phase": pod.status.phase if pod.status else "Unknown",
-                    }
-                )
-
-        if any(pod["ready"] for pod in matching_pods):
-            _LOGGER.debug(
-                msg=f"Integration Route Webhook pods ready to take requests: {matching_pods}"
-            )
-            return True
-    except ApiException as e:
-        logging.error(f"Cluster is not ready: {e}")
-    return False

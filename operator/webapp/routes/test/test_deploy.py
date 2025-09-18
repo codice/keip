@@ -82,24 +82,6 @@ def test_deploy_route_unsupported_file_encoding(test_client):
     assert "Invalid XML file encoding" in response.text
 
 
-def test_cluster_health(mock_k8s_client, test_client):
-    mock_k8s_client.is_cluster_ready.return_value = True
-
-    response = test_client.get("/deploy/cluster-health")
-
-    assert response.status_code == 200
-    assert response.json() == {"status": "UP"}
-
-
-def test_cluster_health_cluster_down(mock_k8s_client, test_client):
-    mock_k8s_client.is_cluster_ready.return_value = False
-
-    response = test_client.get("/deploy/cluster-health")
-
-    assert response.status_code == 200
-    assert response.json() == {"status": "DOWN"}
-
-
 def test_deploy_route_generic_exception(mock_k8s_client, test_client):
     mock_k8s_client.create_route_resources.side_effect = Exception(
         "Something went wrong"

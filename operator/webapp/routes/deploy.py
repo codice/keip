@@ -61,14 +61,6 @@ async def deploy_route(request: Request):
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
-async def get_cluster_health(request: Request):
-    _LOGGER.info("Received cluster health request")
-    if k8s_client.is_cluster_ready():
-        return JSONResponse(content={"status": "UP"}, status_code=200)
-    else:
-        return JSONResponse(content={"status": "DOWN"}, status_code=200)
-
-
 def _generate_route_name(filename: str) -> str:
     filename = filename.replace("_", "-")
     filename = re.sub(r"[^a-z0-9-]", "", filename.lower())
@@ -76,9 +68,4 @@ def _generate_route_name(filename: str) -> str:
     return filename
 
 
-router = Router(
-    [
-        Route("/route", endpoint=deploy_route, methods=["POST"]),
-        Route("/cluster-health", endpoint=get_cluster_health, methods=["GET"]),
-    ]
-)
+router = Router([Route("/route", endpoint=deploy_route, methods=["POST"])])

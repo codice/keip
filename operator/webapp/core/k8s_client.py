@@ -1,11 +1,9 @@
 from typing import List
 from kubernetes import config, client
 from kubernetes.client.rest import ApiException
-from urllib3.util.retry import Retry
-import logging.config
+import logging
 
 from models import RouteData, Resource, Status
-from logconf import LOG_CONF
 
 ROUTE_API_GROUP = "keip.codice.org"
 ROUTE_API_VERSION = "v1alpha1"
@@ -13,8 +11,6 @@ ROUTE_PLURAL = "integrationroutes"
 WEBHOOK_CONTROLLER_PREFIX = "integrationroute-webhook"
 
 
-logging.config.dictConfig(LOG_CONF)
-logging.getLogger("urllib3").setLevel(logging.ERROR)
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -36,7 +32,7 @@ routeApi = client.CustomObjectsApi()
 
 def _check_cluster_reachable():
     try:
-        v1.list_namespace(limit=1, timeout_seconds=5)
+        v1.get_api_resources()
         return True
     except Exception:
         return False
@@ -47,7 +43,7 @@ def create_integration_route(route_data: RouteData, configmap_name: str) -> Reso
     if not _check_cluster_reachable():
         raise ApiException(
             status=500,
-            reason="Kubernetes cluster not reachable. Verify the cluster is running"
+            reason="Kubernetes cluster not reachable. Verify the cluster is running",
         )
 
     existing_route = routeApi.list_namespaced_custom_object(
@@ -148,7 +144,7 @@ def is_cluster_ready() -> bool:
         _LOGGER.warning("Kubernetes client not reachable, cluster is not ready")
         return False
     try:
-        pods = v1.list_pod_for_all_namespaces()
+        pods = v1.list_namespaced_pod(namespace="keip")
         matching_pods = []
         for pod in pods.items:
             if pod.metadata.name.startswith(WEBHOOK_CONTROLLER_PREFIX):

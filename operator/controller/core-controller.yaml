@@ -46,7 +46,6 @@ metadata:
   namespace: keip
 spec:
   replicas: 1
-  service-account: integrationroute-service
   selector:
     matchLabels:
       app: integrationroute-webhook
@@ -55,6 +54,7 @@ spec:
       labels:
         app: integrationroute-webhook
     spec:
+      serviceAccountName: controller-service
       containers:
         - name: webhook
           image: ghcr.io/codice/keip/webapp:0.16.0

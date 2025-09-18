@@ -12,7 +12,7 @@ def mock_k8s_client(mocker):
 
 
 @pytest.fixture(scope="module")
-def client():
+def test_client():
     app = Starlette()
     app.mount("/deploy", deploy.router)
     return TestClient(app)
@@ -21,11 +21,11 @@ def client():
 resources = [Resource(name="my-route", status=Status.CREATED)]
 
 
-def test_deploy_route(mock_k8s_client, client):
+def test_deploy_route(mock_k8s_client, test_client):
     mock_k8s_client.create_route_resources.return_value = resources
 
-    res = client.post(
-        "/deploy/",
+    res = test_client.post(
+        "/deploy/route",
         files={
             "upload_file": (
                 "my-route.xml",
@@ -43,9 +43,9 @@ def test_deploy_route(mock_k8s_client, client):
 
 
 @pytest.mark.parametrize("content_type", ["application/json", ""])
-def test_deploy_route_invalid_content_type(client, content_type):
-    res = client.post(
-        "/deploy/",
+def test_deploy_route_invalid_content_type(test_client, content_type):
+    res = test_client.post(
+        "/deploy/route",
         files={
             "upload_file": (
                 "my-route.xml",
@@ -59,16 +59,16 @@ def test_deploy_route_invalid_content_type(client, content_type):
     assert "No Integration Route XML file found in form data" in res.text
 
 
-def test_deploy_route_missing_upload_file(mock_k8s_client, client):
-    res = client.post("/deploy/", files={})
+def test_deploy_route_missing_upload_file(test_client):
+    res = test_client.post("/deploy/route", files={})
 
     assert res.status_code == 400
     assert "Missing request parameter: upload_file" in res.text
 
 
-def test_deploy_route_unsupported_file_encoding(mock_k8s_client, client):
-    res = client.post(
-        "/deploy/",
+def test_deploy_route_unsupported_file_encoding(test_client):
+    response = test_client.post(
+        "/deploy/route",
         files={
             "upload_file": (
                 "my-route.xml",
@@ -78,35 +78,35 @@ def test_deploy_route_unsupported_file_encoding(mock_k8s_client, client):
         },
     )
 
-    assert res.status_code == 400
-    assert "Invalid XML file encoding" in res.text
+    assert response.status_code == 400
+    assert "Invalid XML file encoding" in response.text
 
 
-def test_cluster_health(mock_k8s_client, client):
+def test_cluster_health(mock_k8s_client, test_client):
     mock_k8s_client.is_cluster_ready.return_value = True
 
-    response = client.get("/deploy/cluster-health")
+    response = test_client.get("/deploy/cluster-health")
 
     assert response.status_code == 200
     assert response.json() == {"status": "UP"}
 
 
-def test_cluster_health_cluster_down(mock_k8s_client, client):
+def test_cluster_health_cluster_down(mock_k8s_client, test_client):
     mock_k8s_client.is_cluster_ready.return_value = False
 
-    response = client.get("/deploy/cluster-health")
+    response = test_client.get("/deploy/cluster-health")
 
     assert response.status_code == 200
     assert response.json() == {"status": "DOWN"}
 
 
-def test_deploy_route_generic_exception(mock_k8s_client, client):
+def test_deploy_route_generic_exception(mock_k8s_client, test_client):
     mock_k8s_client.create_route_resources.side_effect = Exception(
         "Something went wrong"
     )
 
-    res = client.post(
-        "/deploy/",
+    res = test_client.post(
+        "/deploy/route",
         files={
             "upload_file": (
                 "my-route.xml",

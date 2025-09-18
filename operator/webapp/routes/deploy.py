@@ -78,7 +78,7 @@ def _generate_route_name(filename: str) -> str:
 
 router = Router(
     [
-        Route("/", endpoint=deploy_route, methods=["POST"]),
+        Route("/route", endpoint=deploy_route, methods=["POST"]),
         Route("/cluster-health", endpoint=get_cluster_health, methods=["GET"]),
     ]
 )

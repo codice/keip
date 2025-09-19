@@ -54,6 +54,7 @@ spec:
       labels:
         app: integrationroute-webhook
     spec:
+      serviceAccountName: controller-service
       containers:
         - name: webhook
           image: ghcr.io/codice/keip/webapp:0.16.0

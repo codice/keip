@@ -31,6 +31,20 @@ routeApi = client.CustomObjectsApi()
 
 
 def _check_cluster_reachable():
+    """
+    Checks if the Kubernetes cluster is reachable by attempting to retrieve API resources.
+
+    This function attempts to call the Kubernetes API to list available API resources.
+    If the call succeeds, it confirms that the cluster is reachable and returns True.
+    If the call fails or raises an exception, it indicates that the cluster is unreachable
+    and returns False.
+
+    Returns:
+        bool: True if the cluster is reachable, False otherwise.
+
+    Raises:
+        Exception: If an unexpected error occurs during the API call.
+    """
     try:
         v1.get_api_resources()
         return True
@@ -59,7 +73,7 @@ def create_integration_route(route_data: RouteData, configmap_name: str) -> Reso
         "kind": "IntegrationRoute",
         "metadata": {
             "name": route_data.route_name,
-            "labels": {"app.kubernetes.io/created-by": "keip"}
+            "labels": {"app.kubernetes.io/created-by": "keip"},
         },
         "spec": {"routeConfigMap": configmap_name},
     }
@@ -90,7 +104,22 @@ def create_integration_route(route_data: RouteData, configmap_name: str) -> Reso
 
 
 def create_route_configmap(route_data: RouteData) -> Resource:
-    """Create or update a ConfigMap with an XML route payload"""
+    """
+    Creates or updates a ConfigMap containing an XML route payload for an integration route.
+
+    This function generates a ConfigMap with the provided route configuration and creates or updates
+    it in the specified namespace.
+
+    Args:
+        route_data (RouteData): The route data containing the route name, namespace, and XML route file.
+
+    Returns:
+        Resource: A Resource object indicating the status (CREATED or UPDATED) and name of the created/updated ConfigMap.
+
+    Raises:
+        ApiException: If the Kubernetes cluster is unreachable or if there is an error during the API call.
+        Exception: If an unexpected error occurs during processing.
+    """
     if not _check_cluster_reachable():
         raise ApiException(
             status=500,
@@ -100,8 +129,9 @@ def create_route_configmap(route_data: RouteData) -> Resource:
     configmap_name = f"{route_data.route_name}-cm"
     configmap = client.V1ConfigMap(
         metadata=client.V1ObjectMeta(
-            name=configmap_name, namespace=route_data.namespace,
-            labels={"app.kubernetes.io/created-by": "keip"}
+            name=configmap_name,
+            namespace=route_data.namespace,
+            labels={"app.kubernetes.io/created-by": "keip"},
         ),
         data={"integrationRoute.xml": route_data.route_file},
     )
@@ -136,6 +166,31 @@ def create_route_configmap(route_data: RouteData) -> Resource:
 
 
 def create_route_resources(route_data: RouteData) -> List[Resource]:
+    """
+    Creates both a ConfigMap and an Integration Route resource for the specified route configuration.
+
+    This function orchestrates the creation of two Kubernetes resources:
+    1. A ConfigMap containing the XML route payload for the integration route
+    2. An Integration Route resource that routes traffic based on the provided configuration
+
+    The function first creates the ConfigMap using the provided route data, then creates the Integration Route
+    using the ConfigMap name as the routeConfigMap reference. If a ConfigMap with the same name already exists,
+    it is updated rather than recreated. The Integration Route is created or updated based on the existing state.
+
+    Args:
+        route_data (RouteData): The route data containing the route name, namespace, and XML route file.
+            Must include all required fields to properly configure the integration route.
+
+    Returns:
+        List[Resource]: A list containing two Resource objects:
+            - The created/updated ConfigMap resource
+            - The created/updated Integration Route resource
+        The resources are returned in the order: [ConfigMap, Integration Route]
+
+    Raises:
+        ApiException: If the Kubernetes cluster is unreachable or if there is an error during API calls.
+        Exception: If an unexpected error occurs during processing or resource creation.
+    """
     route_cm = create_route_configmap(route_data=route_data)
     route = create_integration_route(
         route_data=route_data, configmap_name=route_cm.name

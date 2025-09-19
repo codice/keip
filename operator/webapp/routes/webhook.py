@@ -12,6 +12,7 @@ from starlette.status import HTTP_400_BAD_REQUEST
 from core.sync import sync
 from addons.certmanager.main import sync_certificate
 
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -39,13 +40,6 @@ def build_webhook(sync_func: Callable[[Mapping], Mapping]):
 
 
 async def status(request):
-    """
-    responses:
-        200:
-            description: The liveness status of the webhook
-            examples:
-                [{"status":"UP"}]
-    """
     return JSONResponse({"status": "UP"})
 
 

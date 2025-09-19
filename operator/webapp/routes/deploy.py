@@ -100,4 +100,4 @@ def _generate_route_name(filename: str) -> str:
     return filename
 
 
-router = Router([Route("/route", endpoint=deploy_route, methods=["POST"])])
+router = Router([Route("/", endpoint=deploy_route, methods=["POST"])])

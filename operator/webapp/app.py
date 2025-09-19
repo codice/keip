@@ -19,7 +19,7 @@ def create_app() -> ASGIApp:
 
     app = Starlette(debug=cfg.DEBUG)
     app.mount("/webhook", webhook.router)
-    app.mount("/deploy", deploy.router)
+    app.mount("/route", deploy.router)
 
     return app
 

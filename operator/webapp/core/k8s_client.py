@@ -57,7 +57,10 @@ def create_integration_route(route_data: RouteData, configmap_name: str) -> Reso
     body = {
         "apiVersion": "keip.codice.org/v1alpha1",
         "kind": "IntegrationRoute",
-        "metadata": {"name": route_data.route_name},
+        "metadata": {
+            "name": route_data.route_name,
+            "labels": {"app.kubernetes.io/created-by": "keip"}
+        },
         "spec": {"routeConfigMap": configmap_name},
     }
 
@@ -97,7 +100,8 @@ def create_route_configmap(route_data: RouteData) -> Resource:
     configmap_name = f"{route_data.route_name}-cm"
     configmap = client.V1ConfigMap(
         metadata=client.V1ObjectMeta(
-            name=configmap_name, namespace=route_data.namespace
+            name=configmap_name, namespace=route_data.namespace,
+            labels={"app.kubernetes.io/created-by": "keip"}
         ),
         data={"integrationRoute.xml": route_data.route_file},
     )

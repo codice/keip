@@ -24,7 +24,7 @@ resources = [Resource(name="my-route", status=Status.CREATED)]
 def test_deploy_route(mock_k8s_client, test_client):
     mock_k8s_client.create_route_resources.return_value = resources
 
-    res = test_client.post(
+    res = test_client.put(
         "/route/",
         files={
             "upload_file": (
@@ -44,7 +44,7 @@ def test_deploy_route(mock_k8s_client, test_client):
 
 @pytest.mark.parametrize("content_type", ["application/json", ""])
 def test_deploy_route_invalid_content_type(test_client, content_type):
-    res = test_client.post(
+    res = test_client.put(
         "/route/",
         files={
             "upload_file": (
@@ -60,14 +60,14 @@ def test_deploy_route_invalid_content_type(test_client, content_type):
 
 
 def test_deploy_route_missing_upload_file(test_client):
-    res = test_client.post("/route/", files={})
+    res = test_client.put("/route/", files={})
 
     assert res.status_code == 400
     assert "Missing request parameter: upload_file" in res.text
 
 
 def test_deploy_route_unsupported_file_encoding(test_client):
-    response = test_client.post(
+    response = test_client.put(
         "/route/",
         files={
             "upload_file": (
@@ -87,7 +87,7 @@ def test_deploy_route_generic_exception(mock_k8s_client, test_client):
         "Something went wrong"
     )
 
-    res = test_client.post(
+    res = test_client.put(
         "/route/",
         files={
             "upload_file": (

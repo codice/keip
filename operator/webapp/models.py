@@ -1,7 +1,8 @@
 from dataclasses import dataclass
+from enum import Enum
 
 
-class Status:
+class Status(str, Enum):
     CREATED = "created"
     DELETED = "deleted"
     UPDATED = "updated"

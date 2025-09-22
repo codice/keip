@@ -1,4 +1,4 @@
-from typing import List
+from typing import Tuple
 from kubernetes import config, client
 from kubernetes.client.rest import ApiException
 import logging
@@ -41,9 +41,6 @@ def _check_cluster_reachable():
 
     Returns:
         bool: True if the cluster is reachable, False otherwise.
-
-    Raises:
-        Exception: If an unexpected error occurs during the API call.
     """
     try:
         v1.get_api_resources()
@@ -52,7 +49,7 @@ def _check_cluster_reachable():
         return False
 
 
-def create_integration_route(route_data: RouteData, configmap_name: str) -> Resource:
+def _create_integration_route(route_data: RouteData, configmap_name: str) -> Resource:
     """Create or update a new Integration Route with the provided configmap"""
     if not _check_cluster_reachable():
         raise ApiException(
@@ -103,7 +100,7 @@ def create_integration_route(route_data: RouteData, configmap_name: str) -> Reso
     return Resource(status=status, name=route_data.route_name)
 
 
-def create_route_configmap(route_data: RouteData) -> Resource:
+def _create_route_configmap(route_data: RouteData) -> Resource:
     """
     Creates or updates a ConfigMap containing an XML route payload for an integration route.
 
@@ -165,7 +162,7 @@ def create_route_configmap(route_data: RouteData) -> Resource:
     return Resource(status=status, name=configmap_name)
 
 
-def create_route_resources(route_data: RouteData) -> List[Resource]:
+def create_route_resources(route_data: RouteData) -> Tuple[Resource]:
     """
     Creates both a ConfigMap and an Integration Route resource for the specified route configuration.
 
@@ -182,7 +179,7 @@ def create_route_resources(route_data: RouteData) -> List[Resource]:
             Must include all required fields to properly configure the integration route.
 
     Returns:
-        List[Resource]: A list containing two Resource objects:
+        Tuple[Resource]: A list containing two Resource objects:
             - The created/updated ConfigMap resource
             - The created/updated Integration Route resource
         The resources are returned in the order: [ConfigMap, Integration Route]
@@ -191,8 +188,8 @@ def create_route_resources(route_data: RouteData) -> List[Resource]:
         ApiException: If the Kubernetes cluster is unreachable or if there is an error during API calls.
         Exception: If an unexpected error occurs during processing or resource creation.
     """
-    route_cm = create_route_configmap(route_data=route_data)
-    route = create_integration_route(
+    route_cm = _create_route_configmap(route_data=route_data)
+    route = _create_integration_route(
         route_data=route_data, configmap_name=route_cm.name
     )
-    return [route_cm, route]
+    return (route_cm, route)

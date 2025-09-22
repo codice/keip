@@ -54,10 +54,10 @@ spec:
       labels:
         app: integrationroute-webhook
     spec:
-      serviceAccountName: controller-service
+      serviceAccountName: keip-controller-service
       containers:
         - name: webhook
-          image: ghcr.io/codice/keip/webapp:0.16.0
+          image: ghcr.io/codice/keip/webapp:0.17.0
           ports:
             - containerPort: 7080
               name: webhook-http

@@ -22,7 +22,7 @@ async def deploy_route(request: Request):
     """
     Handles the deployment of an integration route via an XML file upload.
 
-    The endpoint accepts a POST request with an XML file uploaded via form data.
+    The endpoint accepts a PUT request with an XML file uploaded via form data.
     It validates the file content type, extracts the route name from the filename,
     and creates Kubernetes resources for the route using the provided XML configuration.
 
@@ -100,4 +100,4 @@ def _generate_route_name(filename: str) -> str:
     return filename
 
 
-router = Router([Route("/", endpoint=deploy_route, methods=["POST"])])
+router = Router([Route("/", endpoint=deploy_route, methods=["PUT"])])

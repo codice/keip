@@ -28,7 +28,7 @@ roleRef:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: controller-service
+  name: keip-controller-service
   namespace: keip
 ---
 kind: ClusterRole
@@ -52,7 +52,7 @@ metadata:
   name: controller-kubernetes-binding
 subjects:
   - kind: ServiceAccount
-    name: controller-service
+    name: keip-controller-service
     namespace: keip
     apiGroup: ""
 roleRef:

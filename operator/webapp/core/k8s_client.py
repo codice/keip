@@ -130,7 +130,7 @@ def _create_route_configmap(route_data: RouteData) -> Resource:
             namespace=route_data.namespace,
             labels={"app.kubernetes.io/created-by": "keip"},
         ),
-        data={"integrationRoute.xml": route_data.route_file},
+        data={"integrationRoute.xml": route_data.route_xml},
     )
 
     result = v1.list_namespaced_config_map(

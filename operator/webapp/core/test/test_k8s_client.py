@@ -10,7 +10,7 @@ def route_data():
     return RouteData(
         namespace="default",
         route_name="my-route",
-        route_file="<xml>payload</xml>",
+        route_xml="<xml>payload</xml>",
     )
 
 

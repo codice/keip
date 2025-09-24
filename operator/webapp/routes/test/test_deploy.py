@@ -1,8 +1,10 @@
 import pytest
+import copy
 from starlette.applications import Starlette
+from starlette.routing import Route
 from starlette.testclient import TestClient
 
-from routes import deploy
+from routes.deploy import deploy_route
 from models import Resource, Status
 
 
@@ -13,26 +15,27 @@ def mock_k8s_client(mocker):
 
 @pytest.fixture(scope="module")
 def test_client():
-    app = Starlette()
-    app.mount("/route", deploy.router)
+    app = Starlette(routes=[Route("/route", deploy_route, methods=["PUT"])])
     return TestClient(app)
 
 
 resources = [Resource(name="my-route", status=Status.CREATED)]
+body = {
+    "routes": [
+        {
+            "name": "my-route",
+            "xml": "<?xml version='1.0'?><route>...</route>"
+        }
+    ]
+}
 
 
 def test_deploy_route(mock_k8s_client, test_client):
     mock_k8s_client.create_route_resources.return_value = resources
 
     res = test_client.put(
-        "/route/",
-        files={
-            "upload_file": (
-                "my-route.xml",
-                b"<?xml version='1.0'?><route>...</route>",
-                "application/xml",
-            )
-        },
+        "/route",
+        json = body
     )
 
     assert res.status_code == 201
@@ -42,44 +45,52 @@ def test_deploy_route(mock_k8s_client, test_client):
     assert result[0]["status"] == Status.CREATED
 
 
-@pytest.mark.parametrize("content_type", ["application/json", ""])
+def test_deploy_malformed_json(test_client):
+    request_body = copy.deepcopy(body)
+    del(request_body["routes"][0]["name"])
+
+    res = test_client.put(
+        "/route",
+        json = request_body
+    )
+
+    assert res.status_code == 422
+    result = res.json()
+    assert result["status"] == "error"
+
+
+@pytest.mark.parametrize("content_type", ["application/xml", ""])
 def test_deploy_route_invalid_content_type(test_client, content_type):
     res = test_client.put(
-        "/route/",
-        files={
-            "upload_file": (
-                "my-route.xml",
-                b"<?xml version='1.0'?><route>...</route>",
-                content_type,
-            )
-        },
+        "/route",
+        headers={"content-type": content_type},
+        json = body
     )
 
     assert res.status_code == 400
     assert "No Integration Route XML file found in form data" in res.text
 
 
-def test_deploy_route_missing_upload_file(test_client):
-    res = test_client.put("/route/", files={})
+def test_deploy_route_missing_body(test_client):
+    res = test_client.put("/route", json={})
 
-    assert res.status_code == 400
-    assert "Missing request parameter: upload_file" in res.text
+    assert res.status_code == 422
+    result = res.json()
+    assert result["status"] == "error"
 
 
-def test_deploy_route_unsupported_file_encoding(test_client):
-    response = test_client.put(
-        "/route/",
-        files={
-            "upload_file": (
-                "my-route.xml",
-                "<?xml version='1.0'?><route>...</route>".encode("utf-16"),
-                "application/xml",
-            )
-        },
+def test_deploy_missing_route(test_client):
+    request_body = copy.deepcopy(body)
+    del(request_body["routes"][0])
+
+    res = test_client.put(
+        "/route",
+        json = request_body
     )
 
-    assert response.status_code == 400
-    assert "Invalid XML file encoding" in response.text
+    assert res.status_code == 422
+    result = res.json()
+    assert result["status"] == "error"
 
 
 def test_deploy_route_generic_exception(mock_k8s_client, test_client):
@@ -88,14 +99,8 @@ def test_deploy_route_generic_exception(mock_k8s_client, test_client):
     )
 
     res = test_client.put(
-        "/route/",
-        files={
-            "upload_file": (
-                "my-route.xml",
-                b"<?xml version='1.0'?><route>...</route>",
-                "application/xml",
-            )
-        },
+        "/route",
+        json = body
     )
 
     assert res.status_code == 500

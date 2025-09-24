@@ -10,13 +10,16 @@ class Status(str, Enum):
     UPDATED = "updated"
     RECREATED = "recreated"
 
+
 class Route(BaseModel):
     name: str
     namespace: str = "default"
     xml: str
 
+
 class RouteRequest(BaseModel):
     routes: List[Route] = Field(min_length=1)
+
 
 @dataclass
 class RouteData:

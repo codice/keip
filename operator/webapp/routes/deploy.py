@@ -53,7 +53,7 @@ async def deploy_route(request: Request):
         body = await request.json()
         route_request = RouteRequest(**body)
 
-        content_type = request.headers['content-type']
+        content_type = request.headers["content-type"]
         if content_type != "application/json":
             _LOGGER.warning("Invalid content type: '%s'", content_type)
             raise HTTPException(
@@ -65,7 +65,7 @@ async def deploy_route(request: Request):
             route_data = RouteData(
                 route_name=_generate_route_name(route.name),
                 route_xml=route.xml,
-                namespace=route.namespace
+                namespace=route.namespace,
             )
 
             _LOGGER.info("Creating resources for route: %s", route_data.route_name)
@@ -79,11 +79,10 @@ async def deploy_route(request: Request):
     except HTTPException:
         raise
     except ValidationError as e:
-        return JSONResponse({
-            "status": "error",
-            "message": "Validation failed",
-            "errors": e.errors()
-        }, status_code=422)
+        return JSONResponse(
+            {"status": "error", "message": "Validation failed", "errors": e.errors()},
+            status_code=422,
+        )
     except Exception as e:
         _LOGGER.error("An unexpected error occurred: %s", e, exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error") from e

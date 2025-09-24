@@ -2,6 +2,7 @@ from typing import Tuple
 from kubernetes import config, client
 from kubernetes.client.rest import ApiException
 import logging
+import os
 
 from models import RouteData, Resource, Status
 
@@ -13,17 +14,17 @@ WEBHOOK_CONTROLLER_PREFIX = "integrationroute-webhook"
 
 _LOGGER = logging.getLogger(__name__)
 
-
 try:
-    # Try in-cluster config first
-    config.load_incluster_config()
-    _LOGGER.info("Using in-cluster Kubernetes config")
+    (
+        config.load_kube_config(os.getenv("KUBECONFIG"))
+        if os.getenv("KUBECONFIG")
+        else config.load_incluster_config()
+    )
 except config.ConfigException:
     # Fall back to local kubeconfig
-    _LOGGER.info(
-        msg="Detected not running inside a cluster. Falling back to local kubeconfig."
+    _LOGGER.error(
+        msg="Failed to configure the k8s_client. Keip will be unable to deploy integration routes.",
     )
-    config.load_kube_config()
 
 
 v1 = client.CoreV1Api()
@@ -45,7 +46,7 @@ def _check_cluster_reachable():
     try:
         v1.get_api_resources()
         return True
-    except Exception:
+    except ApiException:
         return False
 
 

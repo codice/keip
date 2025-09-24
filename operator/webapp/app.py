@@ -19,9 +19,7 @@ def create_app() -> ASGIApp:
     if cfg.DEBUG:
         _LOGGER.warning("Running server with debug mode. NOT SUITABLE FOR PRODUCTION!")
 
-    routes = [
-        Route("/route", deploy_route, methods=["PUT"])
-    ]
+    routes = [Route("/route", deploy_route, methods=["PUT"])]
     starlette_app = Starlette(debug=cfg.DEBUG, routes=routes)
     starlette_app.mount("/webhook", webhook.router)
 

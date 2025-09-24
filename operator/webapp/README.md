@@ -17,7 +17,7 @@ The webhook contains two endpoints, `/webhook/sync` and `/webhook/addons/certman
 
 This web server is designed to be run as a service within a Kubernetes cluster. It is intended to be used with [Metacontroller](https://metacontroller.github.io/metacontroller/), which will call the `/webhook` endpoint to manage `IntegrationRoute` custom resources.
 
-The `/route` endpoint is provided for convenience to deploy routes from XML files. The `/cluster-health` endpoint can be used as a liveness or readiness probe.
+The `/route` endpoint is provided for convenience to deploy routes from XML files.
 
 ## Developer Guide
 

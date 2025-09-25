@@ -1,7 +1,7 @@
 import logging.config
 
 from starlette.applications import Starlette
-from starlette.routing import Route
+from starlette.routing import Route, Mount
 from starlette.types import ASGIApp
 
 import config as cfg
@@ -19,9 +19,11 @@ def create_app() -> ASGIApp:
     if cfg.DEBUG:
         _LOGGER.warning("Running server with debug mode. NOT SUITABLE FOR PRODUCTION!")
 
-    routes = [Route("/route", deploy_route, methods=["PUT"])]
+    routes = [
+        Route("/route", deploy_route, methods=["PUT"]),
+        Mount(path="/webhook", routes=webhook.routes),
+    ]
     starlette_app = Starlette(debug=cfg.DEBUG, routes=routes)
-    starlette_app.mount("/webhook", webhook.router)
 
     return starlette_app
 

@@ -46,7 +46,26 @@ def test_deploy_route(mock_k8s_client, test_client):
     assert result[0]["status"] == Status.CREATED
 
 
-def test_deploy_malformed_json(test_client):
+@pytest.mark.parametrize(
+    "name",
+    [
+        "-starts-with-hyphen",
+        "contains_invalid_char#",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc.ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd.commmm",
+    ],
+)
+def test_deploy_route_invalid_names(mock_k8s_client, test_client, name):
+    request_body = copy.deepcopy(body)
+    request_body["routes"][0]["name"] = name
+
+    res = test_client.put("/route", json=request_body)
+
+    assert res.status_code == 422
+    result = res.json()
+    assert result["status"] == "error"
+
+
+def test_deploy_malformed_json(mock_k8s_client, test_client):
     request_body = copy.deepcopy(body)
     del request_body["routes"][0]["name"]
 
@@ -58,14 +77,14 @@ def test_deploy_malformed_json(test_client):
 
 
 @pytest.mark.parametrize("content_type", ["application/xml", ""])
-def test_deploy_route_invalid_content_type(test_client, content_type):
+def test_deploy_route_invalid_content_type(mock_k8s_client, test_client, content_type):
     res = test_client.put("/route", headers={"content-type": content_type}, json=body)
 
     assert res.status_code == 400
     assert "No Integration Route XML file found in form data" in res.text
 
 
-def test_deploy_route_missing_body(test_client):
+def test_deploy_route_missing_body(mock_k8s_client, test_client):
     res = test_client.put("/route", json={})
 
     assert res.status_code == 422
@@ -73,7 +92,7 @@ def test_deploy_route_missing_body(test_client):
     assert result["status"] == "error"
 
 
-def test_deploy_missing_route(test_client):
+def test_deploy_missing_route(mock_k8s_client, test_client):
     request_body = copy.deepcopy(body)
     del request_body["routes"][0]
 

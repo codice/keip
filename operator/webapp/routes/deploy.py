@@ -1,5 +1,5 @@
 import logging.config
-import re
+import json
 
 from dataclasses import asdict
 
@@ -63,7 +63,7 @@ async def deploy_route(request: Request):
         created_resources = []
         for route in route_request.routes:
             route_data = RouteData(
-                route_name=_generate_route_name(route.name),
+                route_name=route.name,
                 route_xml=route.xml,
                 namespace=route.namespace,
             )
@@ -80,30 +80,13 @@ async def deploy_route(request: Request):
         raise
     except ValidationError as e:
         return JSONResponse(
-            {"status": "error", "message": "Validation failed", "errors": e.errors()},
+            {
+                "status": "error",
+                "message": "Validation failed",
+                "errors": json.loads(e.json()),
+            },
             status_code=422,
         )
     except Exception as e:
         _LOGGER.error("An unexpected error occurred: %s", e, exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error") from e
-
-
-def _generate_route_name(filename: str) -> str:
-    """
-    Generates a valid route name from a filename by replacing underscores with hyphens
-    and removing invalid characters, ensuring it adheres to Kubernetes naming conventions.
-
-    Args:
-        filename (str): The original filename from which to generate the route name.
-
-    Returns:
-        str: A cleaned, valid route name in lowercase with only alphanumeric characters and hyphens.
-
-    Example:
-        Input: "my-Route_With_Invalid_Chars.txt"
-        Output: "my-route-with-invalid-chars"
-    """
-    filename = filename.replace("_", "-")
-    filename = re.sub(r"[^a-z0-9-]", "", filename.lower())
-    filename = filename.strip("-")
-    return filename

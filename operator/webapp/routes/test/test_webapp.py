@@ -9,7 +9,7 @@ from app import app
 
 
 def test_status_endpoint(test_client):
-    response = test_client.get("/webhook/status")
+    response = test_client.get("/status")
 
     assert response.status_code == 200
     assert response.json() == {"status": "UP"}

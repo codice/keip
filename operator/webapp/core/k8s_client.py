@@ -79,7 +79,7 @@ def _create_integration_route(route_data: RouteData, configmap_name: str) -> Res
     status = Status.CREATED
 
     if existing_route["items"]:
-        # Recreate route
+        # Delete existing route
         routeApi.delete_namespaced_custom_object(
             group=ROUTE_API_GROUP,
             version=ROUTE_API_VERSION,

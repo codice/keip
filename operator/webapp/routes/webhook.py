@@ -39,10 +39,6 @@ def build_webhook(sync_func: Callable[[Mapping], Mapping]):
     return webhook
 
 
-async def status(request):
-    return JSONResponse({"status": "UP"})
-
-
 routes = [
     Route("/sync", endpoint=build_webhook(sync), methods=["POST"]),
     Route(
@@ -50,5 +46,4 @@ routes = [
         endpoint=build_webhook(sync_certificate),
         methods=["POST"],
     ),
-    Route("/status", endpoint=status, methods=["GET"]),
 ]

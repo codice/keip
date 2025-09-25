@@ -49,6 +49,8 @@ def test_deploy_route(mock_k8s_client, test_client):
 @pytest.mark.parametrize(
     "name",
     [
+        "",
+        " ",
         "-starts-with-hyphen",
         "contains_invalid_char#",
         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc.ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd.commmm",

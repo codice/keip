@@ -31,7 +31,7 @@ v1 = client.CoreV1Api()
 routeApi = client.CustomObjectsApi()
 
 
-def _check_cluster_reachable():
+def _check_cluster_reachable() -> bool:
     """
     Checks if the Kubernetes cluster is reachable by attempting to retrieve API resources.
 
@@ -155,7 +155,7 @@ def _create_route_configmap(route_data: RouteData) -> Resource:
         _LOGGER.info(
             "Route ConfigMap '%s' does not exist and will be created", configmap_name
         )
-        configmap = v1.create_namespaced_config_map(
+        v1.create_namespaced_config_map(
             namespace=route_data.namespace, body=configmap
         )
 
@@ -163,7 +163,7 @@ def _create_route_configmap(route_data: RouteData) -> Resource:
     return Resource(status=status, name=configmap_name)
 
 
-def create_route_resources(route_data: RouteData) -> Tuple[Resource]:
+def create_route_resources(route_data: RouteData) -> Tuple[Resource, Resource]:
     """
     Creates both a ConfigMap and an Integration Route resource for the specified route configuration.
 
@@ -193,4 +193,4 @@ def create_route_resources(route_data: RouteData) -> Tuple[Resource]:
     route = _create_integration_route(
         route_data=route_data, configmap_name=route_cm.name
     )
-    return (route_cm, route)
+    return route_cm, route

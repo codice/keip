@@ -6,7 +6,7 @@ from typing import Callable, Mapping
 from starlette.exceptions import HTTPException
 from starlette.requests import Request
 from starlette.responses import JSONResponse
-from starlette.routing import Route, Router
+from starlette.routing import Route
 from starlette.status import HTTP_400_BAD_REQUEST
 
 from core.sync import sync
@@ -39,18 +39,11 @@ def build_webhook(sync_func: Callable[[Mapping], Mapping]):
     return webhook
 
 
-async def status(request):
-    return JSONResponse({"status": "UP"})
-
-
-router = Router(
-    [
-        Route("/sync", endpoint=build_webhook(sync), methods=["POST"]),
-        Route(
-            "/addons/certmanager/sync",
-            endpoint=build_webhook(sync_certificate),
-            methods=["POST"],
-        ),
-        Route("/status", endpoint=status, methods=["GET"]),
-    ]
-)
+routes = [
+    Route("/sync", endpoint=build_webhook(sync), methods=["POST"]),
+    Route(
+        "/addons/certmanager/sync",
+        endpoint=build_webhook(sync_certificate),
+        methods=["POST"],
+    ),
+]

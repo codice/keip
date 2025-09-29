@@ -2,11 +2,9 @@
 
 A Python web server that implements the following endpoints:
 - `/webhook`: A [lambda controller from the Metacontroller API](https://metacontroller.github.io/metacontroller/concepts.html#lambda-controller).
-The webhook will be called as part of the Metacontroller control loop when `IntegrationRoute` parent
-resources are detected.
+- `/route`: Deploys a route from an XML file.
 
-  The webhook contains two endpoints, `/webhook/sync` and `/webhook/addons/certmanager/sync`.
-
+The webhook contains two endpoints, `/webhook/sync` and `/webhook/addons/certmanager/sync`.
   - `/webhook/sync`: The core logic that creates a `Deployment` from `IntegrationRoute` resources.
   - `/webhook/addons/certmanager/sync`: An add-on that creates
     a [cert-manager.io/v1.Certificate](https://cert-manager.io/docs/reference/api-docs/#cert-manager.io/v1.Certificate)
@@ -14,6 +12,12 @@ resources are detected.
 
   The format for the request and response JSON payloads can be
   seen [here](https://metacontroller.github.io/metacontroller/api/compositecontroller.html#sync-hook)
+
+## Deployment
+
+This web server is designed to be run as a service within a Kubernetes cluster. It is intended to be used with [Metacontroller](https://metacontroller.github.io/metacontroller/), which will call the `/webhook` endpoint to manage `IntegrationRoute` custom resources.
+
+The `/route` endpoint is provided for convenience to deploy routes from XML files.
 
 ## Developer Guide
 
@@ -62,6 +66,20 @@ a [pre-commit git hook](https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks
 
 ```shell
 make precommit
+```
+
+### Docker
+
+To build the Docker image, run:
+
+```shell
+make build
+```
+
+To run the Docker container:
+
+```shell
+make run-container
 ```
 
 ### Windows Development

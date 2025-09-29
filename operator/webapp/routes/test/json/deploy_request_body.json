@@ -1,0 +1,9 @@
+{
+  "routes": [
+    {
+      "name": "my-route",
+      "namespace": "default",
+      "xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<beans xmlns=\"http://www.springframework.org/schema/beans\"\n       xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n       xmlns:int=\"http://www.springframework.org/schema/integration\"\n       xsi:schemaLocation=\"http://www.springframework.org/schema/beans\n           https://www.springframework.org/schema/beans/spring-beans.xsd\n           http://www.springframework.org/schema/integration\n           https://www.springframework.org/schema/integration/spring-integration.xsd\">\n    <int:channel id=\"output\"/>\n    <int:inbound-channel-adapter channel=\"output\"\n                                 expression=\"'${greeting}. The password is: ${test.password}'\">\n        <int:poller fixed-rate=\"5000\"/>\n    </int:inbound-channel-adapter>\n    <int:logging-channel-adapter\n            channel=\"output\"\n            log-full-message=\"true\"/>\n</beans>"
+    }
+  ]
+}

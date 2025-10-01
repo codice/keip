@@ -8,7 +8,7 @@ keip (Kubernetes Enterprise Integration Patterns) is a Kubernetes operator that 
 
 Instead of writing, compiling, and deploying Java applications for service communication and data integration, you can now define Spring Integration routes as Kubernetes resources and let keip handle the rest.
 
-### The Problem It Solves
+### The Problems It Solves
 
 Modern distributed systems often need to:
 - **Microservices Communication**: Orchestrate complex service-to-service interactions, event streaming, and API workflows
@@ -18,6 +18,7 @@ Modern distributed systems often need to:
 - **Smart Routing**: Route messages based on content, rules, or dynamic conditions
 - **Resilient Operations**: Handle errors, retries, and circuit breaking gracefully
 - **Dynamic Scaling**: Scale integration workloads based on demand
+- **Legacy Systems**: Bridge legacy systems with modern cloud applications and microservices
 
 Traditionally, this requires:
 - Writing Java code with Spring Integration
@@ -43,40 +44,6 @@ With keip, you define your integration logic in XML configuration and deploy it 
 - **🔄 Runtime Flexibility**: Update integration routes without rebuilding applications
 - **🏢 Enterprise Ready**: Battle-tested Spring components with comprehensive error handling and monitoring
 - **📊 Cloud-Native Observability**: Native Kubernetes monitoring and logging support
-
-## Use Cases
-
-**Microservices Communication**
-- Orchestrate complex service-to-service workflows and event-driven architectures
-- Implement saga patterns and distributed transaction coordination
-- Handle service mesh communication with intelligent routing and load balancing
-- Create resilient API gateways with circuit breakers and retry logic
-
-**AI Toolchain Integration**  
-- Coordinate multi-model inference pipelines and AI workflow orchestration
-- Connect feature stores, model registries, and real-time inference engines
-- Process training data pipelines and model deployment workflows
-- Integrate AI services with business applications and external APIs
-
-**Message Routing & Transformation**
-- Route messages between different message brokers (Kafka, RabbitMQ, etc.)
-- Transform message formats and enrich data in transit
-
-**Database Integration**  
-- Sync data between multiple databases
-- Export database records to files or APIs
-
-**File Processing**
-- Monitor directories and process incoming files
-- Convert file formats and distribute to multiple destinations  
-
-**API Integration**
-- Connect REST APIs with message queues or databases
-- Implement complex API orchestration workflows
-
-**Legacy System Integration**
-- Bridge legacy systems with modern cloud applications and microservices
-- Handle protocol translations and data format conversions
 
 ## Quick Start
 

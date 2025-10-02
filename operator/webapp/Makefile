@@ -1,4 +1,4 @@
-VERSION ?= 0.17.0
+VERSION ?= 0.18.0
 HOST_PORT ?= 7080
 GIT_TAG := webapp_v$(VERSION)
 

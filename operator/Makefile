@@ -1,4 +1,4 @@
-VERSION ?= 0.14.0
+VERSION ?= 0.15.0
 GIT_TAG := operator_v$(VERSION)
 KEIP_INTEGRATION_IMAGE ?= ghcr.io/codice/keip/minimal-app:latest
 

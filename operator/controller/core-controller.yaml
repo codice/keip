@@ -57,7 +57,7 @@ spec:
       serviceAccountName: keip-controller-service
       containers:
         - name: webhook
-          image: ghcr.io/codice/keip/webapp:0.17.0
+          image: ghcr.io/codice/keip/webapp:0.18.0
           ports:
             - containerPort: 7080
               name: webhook-http

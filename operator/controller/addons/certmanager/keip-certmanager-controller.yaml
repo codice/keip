@@ -15,4 +15,4 @@ spec:
   hooks:
     sync:
       webhook:
-        url: http://integrationroute-webhook.keip/addons/certmanager/sync
+        url: http://integrationroute-webhook.keip/webhook/addons/certmanager/sync

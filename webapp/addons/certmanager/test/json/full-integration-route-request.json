@@ -1,6 +1,6 @@
 {
   "object": {
-    "apiVersion": "keip.codice.org/v1alpha1",
+    "apiVersion": "keip.codice.org/v1alpha2",
     "kind": "IntegrationRoute",
     "metadata": {
       "annotations": {
@@ -28,7 +28,7 @@
       "replicas": 1,
       "routeConfigMap": "testroute-xml",
       "secretSources": [
-        "testroute-secret"
+        {"name": "testroute-secret"}
       ],
       "tls": {
         "keystore": {

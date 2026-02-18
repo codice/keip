@@ -7,28 +7,35 @@ import os
 from models import RouteData, Resource, Status
 
 ROUTE_API_GROUP = "keip.codice.org"
-ROUTE_API_VERSION = "v1alpha1"
+ROUTE_API_VERSION = "v1alpha2"
 ROUTE_PLURAL = "integrationroutes"
 WEBHOOK_CONTROLLER_PREFIX = "integrationroute-webhook"
 
 
 _LOGGER = logging.getLogger(__name__)
 
-try:
-    (
-        config.load_kube_config(os.getenv("KUBECONFIG"))
-        if os.getenv("KUBECONFIG")
-        else config.load_incluster_config()
-    )
-except config.ConfigException:
-    # Fall back to local kubeconfig
-    _LOGGER.error(
-        msg="Failed to configure the k8s_client. Keip will be unable to deploy integration routes.",
-    )
+_configured = False
+v1 = None
+routeApi = None
 
 
-v1 = client.CoreV1Api()
-routeApi = client.CustomObjectsApi()
+def _ensure_configured():
+    global _configured, v1, routeApi
+    if _configured:
+        return
+    try:
+        (
+            config.load_kube_config(os.getenv("KUBECONFIG"))
+            if os.getenv("KUBECONFIG")
+            else config.load_incluster_config()
+        )
+    except config.ConfigException:
+        _LOGGER.error(
+            msg="Failed to configure the k8s_client. keip will be unable to deploy integration routes.",
+        )
+    v1 = client.CoreV1Api()
+    routeApi = client.CustomObjectsApi()
+    _configured = True
 
 
 def _check_cluster_reachable() -> bool:
@@ -43,6 +50,7 @@ def _check_cluster_reachable() -> bool:
     Returns:
         bool: True if the cluster is reachable, False otherwise.
     """
+    _ensure_configured()
     try:
         v1.get_api_resources()
         return True
@@ -67,7 +75,7 @@ def _create_integration_route(route_data: RouteData, configmap_name: str) -> Res
     )
 
     body = {
-        "apiVersion": "keip.codice.org/v1alpha1",
+        "apiVersion": "keip.codice.org/v1alpha2",
         "kind": "IntegrationRoute",
         "metadata": {
             "name": route_data.route_name,

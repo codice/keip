@@ -11,9 +11,12 @@ from core.sync import (
 
 FIXED_ISO_TIMESTAMP = "2023-09-06T12:34:56Z"
 
+PARENT_GENERATION = 1
+
 STATUS_NOT_READY_CONDITION = {
     "lastTransitionTime": FIXED_ISO_TIMESTAMP,
     "message": "Some IntegrationRoute pod replicas are not ready",
+    "observedGeneration": PARENT_GENERATION,
     "reason": "ReplicasNotReady",
     "status": "False",
     "type": "Ready",
@@ -22,6 +25,7 @@ STATUS_NOT_READY_CONDITION = {
 STATUS_READY_CONDITION = {
     "lastTransitionTime": FIXED_ISO_TIMESTAMP,
     "message": "All IntegrationRoute pod replicas are ready",
+    "observedGeneration": PARENT_GENERATION,
     "reason": "ReplicasReady",
     "status": "True",
     "type": "Ready",
@@ -122,7 +126,7 @@ def test_status_conditions_with_parent_missing_status_field_generate_new_status(
 def test_ready_status_with_parent_missing_status_field_generate_new_status(
     patch_datetime,
 ):
-    ready_condition = _get_status_ready_condition({}, False)
+    ready_condition = _get_status_ready_condition({}, False, PARENT_GENERATION)
 
     assert ready_condition == STATUS_NOT_READY_CONDITION
 
@@ -136,7 +140,9 @@ def test_ready_status_with_parent_missing_ready_condition_generate_new_status(
         c for c in full_route["parent"]["status"]["conditions"] if c["type"] != "Ready"
     ]
 
-    ready_condition = _get_status_ready_condition(parent_status, True)
+    ready_condition = _get_status_ready_condition(
+        parent_status, True, PARENT_GENERATION
+    )
 
     assert ready_condition == STATUS_READY_CONDITION
 
@@ -150,8 +156,11 @@ def test_ready_status_with_parent_matching_ready_condition_reuse_parent_status(
     parent_status = full_route["parent"]["status"]
     parent_condition = get_ready_condition(parent_status["conditions"])
     parent_condition["status"] = parent_ready
+    parent_condition["observedGeneration"] = PARENT_GENERATION
 
-    ready_condition = _get_status_ready_condition(parent_status, computed_ready)
+    ready_condition = _get_status_ready_condition(
+        parent_status, computed_ready, PARENT_GENERATION
+    )
 
     assert ready_condition == parent_condition
 
@@ -166,12 +175,31 @@ def test_ready_status_with_parent_different_ready_condition_generate_new_status(
     parent_condition = get_ready_condition(parent_status["conditions"])
     parent_condition["status"] = parent_ready
 
-    ready_condition = _get_status_ready_condition(parent_status, computed_ready)
+    ready_condition = _get_status_ready_condition(
+        parent_status, computed_ready, PARENT_GENERATION
+    )
 
     if computed_ready:
         assert ready_condition == STATUS_READY_CONDITION
     else:
         assert ready_condition == STATUS_NOT_READY_CONDITION
+
+
+def test_ready_status_with_changed_generation_generates_new_condition(
+    patch_datetime, full_route
+):
+    parent_status = full_route["parent"]["status"]
+    parent_condition = get_ready_condition(parent_status["conditions"])
+    parent_condition["status"] = "True"
+    parent_condition["observedGeneration"] = PARENT_GENERATION
+
+    new_generation = PARENT_GENERATION + 1
+    ready_condition = _get_status_ready_condition(
+        parent_status, True, new_generation
+    )
+
+    assert ready_condition["observedGeneration"] == new_generation
+    assert ready_condition["lastTransitionTime"] == FIXED_ISO_TIMESTAMP
 
 
 @pytest.fixture()
@@ -182,7 +210,7 @@ def patch_datetime(monkeypatch):
 class MockDateTime(datetime):
     @classmethod
     def now(cls, tz=None):
-        return datetime.fromisoformat(FIXED_ISO_TIMESTAMP)
+        return datetime.fromisoformat(FIXED_ISO_TIMESTAMP.replace("Z", "+00:00"))
 
 
 def get_child_deployment(route_request: Mapping):

@@ -17,6 +17,7 @@ def route_data():
 @pytest.fixture
 def mock_api(mocker):
     """Patch the global `v1` and `routeApi` objects used by k8s_client."""
+    mocker.patch("core.k8s_client._ensure_configured")
     v1 = mocker.patch("core.k8s_client.v1")
     route_api = mocker.patch("core.k8s_client.routeApi")
     return {"v1": v1, "route_api": route_api}

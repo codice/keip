@@ -1,6 +1,6 @@
 {
   "parent": {
-    "apiVersion": "keip.codice.org/v1alpha1",
+    "apiVersion": "keip.codice.org/v1alpha2",
     "kind": "IntegrationRoute",
     "metadata": {
       "creationTimestamp": "2023-09-06T01:16:27Z",
@@ -57,7 +57,7 @@
       "replicas": 2,
       "routeConfigMap": "testroute-xml",
       "secretSources": [
-        "testroute-secret"
+        {"name": "testroute-secret"}
       ],
       "tls": {
         "keystore": {
@@ -106,6 +106,7 @@
         {
           "lastTransitionTime": "2023-09-06T01:25:45Z",
           "message": "All IntegrationRoute pod replicas are ready",
+          "observedGeneration": 1,
           "reason": "ReplicasReady",
           "status": "True",
           "type": "Ready"

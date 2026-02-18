@@ -23,6 +23,15 @@ ACTUATOR_CONFIG_BLOCK = {
 }
 
 
+def _normalize_secret_sources(secret_sources: list) -> list:
+    """Normalize secretSources to object format.
+
+    v1alpha1 uses string arrays (e.g. ["my-secret"]),
+    v1alpha2 uses object arrays (e.g. [{"name": "my-secret"}]).
+    """
+    return [{"name": s} if isinstance(s, str) else s for s in secret_sources]
+
+
 class VolumeConfig:
     """
     Handles creating a pod's volumes and volumeMounts based on the following IntegrationRoute inputs:
@@ -38,7 +47,6 @@ class VolumeConfig:
         - replicas
         - persistentVolumeClaims
         - tls
-        - services
     """
 
     _route_vol_name = "integration-route-config"
@@ -47,7 +55,9 @@ class VolumeConfig:
 
     def __init__(self, parent_spec) -> None:
         self._route_config = parent_spec["routeConfigMap"]
-        self._secret_srcs = parent_spec.get("secretSources", [])
+        self._secret_srcs = _normalize_secret_sources(
+            parent_spec.get("secretSources", [])
+        )
         self._pvcs = parent_spec.get("persistentVolumeClaims", [])
         self._config_maps = parent_spec.get("configMaps", [])
         self._tls_config = parent_spec.get("tls")
@@ -63,7 +73,8 @@ class VolumeConfig:
         ]
 
         for secret in self._secret_srcs:
-            volumes.append({"name": secret, "secret": {"secretName": secret}})
+            secret_name = secret["name"]
+            volumes.append({"name": secret_name, "secret": {"secretName": secret_name}})
 
         for pvc_spec in self._pvcs:
             volumes.append(
@@ -126,11 +137,12 @@ class VolumeConfig:
         ]
 
         for secret in self._secret_srcs:
+            secret_name = secret["name"]
             volume_mounts.append(
                 {
-                    "name": secret,
+                    "name": secret_name,
                     "readOnly": True,
-                    "mountPath": str(PurePosixPath(SECRETS_ROOT, secret)),
+                    "mountPath": str(PurePosixPath(SECRETS_ROOT, secret_name)),
                 }
             )
 
@@ -446,6 +458,7 @@ def _new_actuator_service(parent):
 
 def _compute_status(parent: Mapping, children: Mapping) -> Mapping:
     route_name = parent["metadata"]["name"]
+    generation = parent["metadata"]["generation"]
     expected_replicas = parent["spec"]["replicas"]
 
     init_status = {
@@ -472,7 +485,9 @@ def _compute_status(parent: Mapping, children: Mapping) -> Mapping:
 
     ready_conditions = [
         _get_status_ready_condition(
-            parent.get("status", {}), expected_replicas == ready_replicas
+            parent.get("status", {}),
+            expected_replicas == ready_replicas,
+            generation,
         )
     ]
 
@@ -484,7 +499,9 @@ def _compute_status(parent: Mapping, children: Mapping) -> Mapping:
     }
 
 
-def _get_status_ready_condition(parent_status: Mapping, is_ready: bool) -> Mapping:
+def _get_status_ready_condition(
+    parent_status: Mapping, is_ready: bool, observed_generation: int
+) -> Mapping:
     condition_type = "Ready"
 
     ready_condition_list = (
@@ -494,11 +511,16 @@ def _get_status_ready_condition(parent_status: Mapping, is_ready: bool) -> Mappi
     )
 
     ready_condition = ready_condition_list[0] if ready_condition_list else None
-    if ready_condition and ready_condition.get("status") == str(is_ready):
+    if (
+        ready_condition
+        and ready_condition.get("status") == str(is_ready)
+        and ready_condition.get("observedGeneration") == observed_generation
+    ):
         return ready_condition
 
     updated_condition = {
         "lastTransitionTime": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "observedGeneration": observed_generation,
         "status": str(is_ready),
         "type": condition_type,
     }

@@ -255,6 +255,7 @@
       {
         "lastTransitionTime": "2023-09-06T01:25:45Z",
         "message": "All IntegrationRoute pod replicas are ready",
+        "observedGeneration": 1,
         "reason": "ReplicasReady",
         "status": "True",
         "type": "Ready"

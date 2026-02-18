@@ -1,11 +1,10 @@
-import json
 import os
-from typing import Mapping
 
 import pytest
 from starlette.testclient import TestClient
 
 from app import app
+from conftest import load_json_as_dict
 
 
 def test_status_endpoint(test_client):
@@ -67,11 +66,6 @@ def test_sync_endpoint_empty_body(test_client, endpoint, status_code):
     response = test_client.post(endpoint, json={})
 
     assert response.status_code == status_code
-
-
-def load_json_as_dict(filepath: str) -> Mapping:
-    with open(filepath, "r") as f:
-        return json.load(f)
 
 
 @pytest.fixture(scope="module")

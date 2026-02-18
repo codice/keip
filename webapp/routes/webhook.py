@@ -10,7 +10,6 @@ from starlette.routing import Route
 from starlette.status import HTTP_400_BAD_REQUEST
 
 from core.sync import sync
-from addons.certmanager.main import sync_certificate
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -41,9 +40,4 @@ def build_webhook(sync_func: Callable[[Mapping], Mapping]):
 
 routes = [
     Route("/sync", endpoint=build_webhook(sync), methods=["POST"]),
-    Route(
-        "/addons/certmanager/sync",
-        endpoint=build_webhook(sync_certificate),
-        methods=["POST"],
-    ),
 ]

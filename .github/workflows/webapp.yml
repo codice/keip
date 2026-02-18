@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   pull_request:
     paths:
-      - operator/webapp/**
+      - webapp/**
       - .github/workflows/webapp.yml
       - .github/workflows/scripts
       - '!**.md'
@@ -11,12 +11,12 @@ on:
     branches:
       - main
     paths:
-      - operator/webapp/**
+      - webapp/**
       - '!**.md'
 
 env:
   PYTHON_VERSION: 3.11
-  WORKING_DIR: ./operator/webapp
+  WORKING_DIR: ./webapp
 
 jobs:
   verify-versions:

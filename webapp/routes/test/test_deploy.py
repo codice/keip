@@ -30,7 +30,7 @@ def test_client():
 
 
 resources = [Resource(name="my-route", status=Status.CREATED)]
-with open("./routes/test/json/deploy_request_body.json", "r") as f:
+with open("./routes/test/json/deploy-request-body.json", "r") as f:
     body = json.load(f)
 
 

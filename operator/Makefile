@@ -1,16 +1,16 @@
 VERSION ?= 0.15.0
 GIT_TAG := operator_v$(VERSION)
-KEIP_INTEGRATION_IMAGE ?= ghcr.io/codice/keip/minimal-app:latest
 
 KUBECTL := kubectl
 KUBECTL_DELETE := $(KUBECTL) delete --ignore-not-found
-CONTROLLER_NAMESPACE := keip
 
 .PHONY: deploy
-deploy: metacontroller/deploy controller/deploy
+deploy:
+	$(KUBECTL) apply -k .
 
 .PHONY: undeploy
-undeploy: controller/undeploy metacontroller/undeploy
+undeploy:
+	-$(KUBECTL_DELETE) -k .
 
 .PHONY: get-tag
 get-tag:
@@ -23,6 +23,8 @@ clean:
 prep-release:
 	@rm -rf output
 	@mkdir -p output/addons
+	@echo "Running kustomize build on ./ (full install)"
+	kustomize build . > ./output/install.yaml
 	@echo "Running kustomize build on ./controller/"
 	kustomize build ./controller/ > ./output/keip-core-controller.yaml
 	@for dir in ./controller/addons/*/ ; do \
@@ -46,10 +48,8 @@ metacontroller/undeploy:
 
 controller/deploy: crd/deploy
 	$(KUBECTL) apply -k controller
-	$(KUBECTL) -n $(CONTROLLER_NAMESPACE) create cm keip-controller-props --from-literal=integration-image=$(KEIP_INTEGRATION_IMAGE) -o yaml --dry-run=client | $(KUBECTL) apply -f -
 
 controller/undeploy: crd/undeploy
-	-$(KUBECTL_DELETE) -n $(CONTROLLER_NAMESPACE) cm keip-controller-props
 	-$(KUBECTL_DELETE) -k controller
 
 addons/certmanager/deploy:

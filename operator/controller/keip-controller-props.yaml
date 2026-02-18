@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keip-controller-props
+  namespace: keip
+data:
+  integration-image: "ghcr.io/codice/keip/minimal-app:latest"

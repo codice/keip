@@ -9,7 +9,9 @@ from starlette.types import ASGIApp
 import config as cfg
 from logconf import LOG_CONF
 from routes import webhook
+from routes.webhook import build_webhook
 from routes.deploy import deploy_route
+from addons.certmanager.main import sync_certificate
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -41,10 +43,18 @@ def create_app() -> ASGIApp:
     if cfg.DEBUG:
         _LOGGER.warning("Running server with debug mode. NOT SUITABLE FOR PRODUCTION!")
 
+    addon_routes = [
+        Route(
+            "/addons/certmanager/sync",
+            endpoint=build_webhook(sync_certificate),
+            methods=["POST"],
+        ),
+    ]
+
     routes = [
         Route("/route", deploy_route, methods=["PUT"]),
         Route("/status", status, methods=["GET"]),
-        Mount(path="/webhook", routes=webhook.routes),
+        Mount(path="/webhook", routes=webhook.routes + addon_routes),
     ]
 
     starlette_app = Starlette(debug=cfg.DEBUG, routes=routes)

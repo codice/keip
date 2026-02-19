@@ -119,7 +119,7 @@ Create a simple integration that prints a message every 5 seconds:
 2. **Deploy the integration route:**
    ```bash
    cat <<YAMEOF | kubectl create -f -
-   apiVersion: keip.codice.org/v1alpha1
+   apiVersion: keip.codice.org/v1alpha2
    kind: IntegrationRoute
    metadata:
      name: example-route
@@ -146,7 +146,7 @@ Create a simple integration that prints a message every 5 seconds:
 
 The default keip container provides basic Spring Integration components. For advanced use cases, you can create custom containers with additional Spring Boot starters, Spring Integration components, or your own Java libraries:
 
-1. Copy the `minimal-app/` directory and update `groupId`, `artifactId`, and `version` in `pom.xml`
+1. Copy the `keip-integration/` directory and update `groupId`, `artifactId`, and `version` in `pom.xml`
 2. Add any Spring Boot starters or custom dependencies to `pom.xml`
 3. Update the `keip-controller-props` ConfigMap to reference your custom image
 4. Restart the webhook deployment

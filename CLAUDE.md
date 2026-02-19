@@ -12,7 +12,7 @@ Three independently versioned artifacts in a monorepo:
 
 - **`webapp/`** — Python (3.11) webhook server (Starlette/Uvicorn) that handles Metacontroller sync requests and generates Kubernetes child resources. This is where most active development happens.
 - **`operator/`** — Kubernetes manifests (CRD, CompositeController, RBAC) deployed via kustomize.
-- **`minimal-app/`** — Default Java 21 Spring Boot container that runs the integration routes.
+- **`keip-integration/`** — Default Java 21 Spring Boot container that runs the integration routes.
 
 A root `Makefile` provides aggregate targets that delegate to sub-projects.
 
@@ -48,7 +48,7 @@ make prep-release          # Generate install.yaml and per-component manifests t
 
 Users can also install without cloning: `kubectl apply -f <release-url>/install.yaml` or `kubectl apply -k 'https://github.com/codice/keip/operator?ref=<tag>'`.
 
-### Minimal App (Java) — `minimal-app/`
+### Integration App (Java) — `keip-integration/`
 
 ```bash
 mvn clean install          # Build JAR and Docker image (uses Jib)
@@ -62,7 +62,7 @@ make test-webapp           # Run webapp tests
 make lint-webapp           # Lint webapp
 make precommit-webapp      # Full precommit check
 make deploy-operator       # Deploy operator to cluster
-make build-minimal-app     # Build Java app
+make build-keip-integration     # Build Java app
 ```
 
 ## Architecture
@@ -72,7 +72,7 @@ IntegrationRoute CR  →  Metacontroller  →  Webhook (Python)  →  Deployment
      (user)            (watches CRDs)      (sync.py logic)      (child resources)
 ```
 
-1. User creates an `IntegrationRoute` resource (`keip.codice.org/v1alpha1`, shortname: `ir`)
+1. User creates an `IntegrationRoute` resource (`keip.codice.org/v1alpha2`, shortname: `ir`)
 2. Metacontroller (v4.11.6) detects it via CompositeController
 3. Metacontroller POSTs to the webhook at `/webhook/sync`
 4. `core/sync.py` generates a Deployment spec (mounting the route XML from a ConfigMap) and an actuator Service
@@ -123,7 +123,7 @@ Uses pytest, httpx (for async HTTP testing), pytest-mock. Coverage is tracked vi
 GitHub Actions workflows in `.github/workflows/`:
 - **`webapp.yml`** — verify-versions → test → lint → build (PR) / release (main). Builds linux/amd64 + arm64.
 - **`operator.yml`** — verify-versions → kustomize build (PR) / release (main)
-- **`minimal-app.yml`** — verify-versions → Maven verify (PR) / release (main). Java 21.
+- **`keip-integration.yml`** — verify-versions → Maven verify (PR) / release (main). Java 21.
 
 ## Conventions
 

@@ -24,12 +24,9 @@ spec:
       resource: services
       updateStrategy:
         method: RollingRecreate
-        statusChecks:
-          conditions:
-            - type: Ready
-              status: "True"
   hooks:
     sync:
       webhook:
+        # TODO: Migrate to HTTPS. Sync requests contain CR specs with secret references.
         url: http://integrationroute-webhook.keip/webhook/sync
         timeout: 10s

@@ -2,7 +2,7 @@
 
 .PHONY: test-webapp lint-webapp format-webapp precommit-webapp
 .PHONY: deploy-operator undeploy-operator
-.PHONY: build-minimal-app
+.PHONY: build-keip-integration
 
 # Webapp targets
 test-webapp:
@@ -24,6 +24,6 @@ deploy-operator:
 undeploy-operator:
 	$(MAKE) -C operator undeploy
 
-# Minimal app targets
-build-minimal-app:
-	cd minimal-app && mvn clean install
+# Integration app targets
+build-keip-integration:
+	cd keip-integration && mvn clean install

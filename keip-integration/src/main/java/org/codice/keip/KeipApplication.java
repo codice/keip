@@ -10,6 +10,6 @@ import org.springframework.integration.config.EnableIntegration;
 @ImportResource(locations = "${keip.integration.filepath:file:/var/spring/xml/integrationRoute.xml}")
 public class KeipApplication {
     public static void main(String[] args) {
-        SpringApplication.run(KeipApplication.class);
+        SpringApplication.run(KeipApplication.class, args);
     }
 }

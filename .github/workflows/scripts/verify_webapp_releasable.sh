@@ -1,6 +1,6 @@
 set -eux
 
-WEBAPP_DIR=operator/webapp
+WEBAPP_DIR=webapp
 
 verify_version_bump() {
   potential_tag=$(make --no-print-directory -C $WEBAPP_DIR get-tag)

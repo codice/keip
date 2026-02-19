@@ -1,31 +1,34 @@
-name: minimal-app
+name: keip-integration
 
 on:
   workflow_dispatch:
   pull_request:
     paths:
-      - minimal-app/**
-      - .github/workflows/minimal-app.yml
+      - keip-integration/**
+      - .github/workflows/keip-integration.yml
       - .github/workflows/scripts
   push:
     branches:
       - main
     paths:
-      - minimal-app/**
+      - keip-integration/**
 
 env:
-  WORKING_DIR: ./minimal-app
+  WORKING_DIR: ./keip-integration
   JAVA_VERSION: 21
-  GIT_TAG_PREFIX: minimal-app_v
+  GIT_TAG_PREFIX: keip-integration_v
+
+permissions:
+  contents: read
 
 jobs:
   verify-versions:
     if: github.ref != 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - run: sh .github/workflows/scripts/verify_minimal_app_releasable.sh
-        name: Verify minimal app is in a state to be released on merge
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - run: sh .github/workflows/scripts/verify_keip_integration_releasable.sh
+        name: Verify keip-integration is in a state to be released on merge
   build:
     name: build image
     if: github.ref != 'refs/heads/main'
@@ -35,8 +38,8 @@ jobs:
         shell: bash
         working-directory: ${{ env.WORKING_DIR }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v3
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4
         with:
           java-version: "${{ env.JAVA_VERSION }}"
           distribution: "temurin"
@@ -54,7 +57,7 @@ jobs:
       contents: write # create git tags
       packages: write # push docker images
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - run: |
           VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
           REGISTRY=$(mvn help:evaluate -Dexpression=docker.registry -q -DforceStdout)
@@ -77,7 +80,7 @@ jobs:
           fi
         name: check if release is needed
 
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4
         if: env.needs_release == 'true'
         with:
           java-version: "${{ env.JAVA_VERSION }}"
@@ -99,7 +102,7 @@ jobs:
           docker push ${{ steps.naming-selector.outputs.LATEST_FULL_IMAGE_NAME }}
         if: env.needs_release == 'true'
 
-      - uses: mathieudutour/github-tag-action@v6.1
+      - uses: mathieudutour/github-tag-action@fcfbdceb3093f6d85a3b194740f8c6cec632f4e2 # v6.1
         if: env.needs_release == 'true'
         id: tag_version
         with:

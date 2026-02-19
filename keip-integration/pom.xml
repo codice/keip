@@ -11,7 +11,7 @@
     </parent>
 
     <groupId>org.codice.keip</groupId>
-    <artifactId>minimal-app</artifactId>
+    <artifactId>keip-integration</artifactId>
     <version>0.4.0</version>
 
     <properties>
@@ -79,6 +79,7 @@
     </dependencies>
 
     <build>
+        <finalName>app</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
@@ -97,19 +98,14 @@
                 <artifactId>jib-maven-plugin</artifactId>
                 <version>3.5.1</version>
                 <configuration>
+                    <from>
+                        <image>eclipse-temurin:21-jre@sha256:34a58218d838035428163eb35abb629944c5906d1bedcfef8bc8864cce11dfe5</image>
+                    </from>
                     <container>
                         <creationTime>${maven.build.timestamp}</creationTime>
                         <jvmFlags>
                             <jvmFlag>-Dspring.config.location=/var/spring/config/</jvmFlag>
                         </jvmFlags>
-                        <volumes>
-                            <volume>
-                                /var/spring/xml
-                            </volume>
-                            <volume>
-                                /var/spring/config
-                            </volume>
-                        </volumes>
                         <labels>
                             <org.opencontainers.image.source>
                                 ${container.source.label}

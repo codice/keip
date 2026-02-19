@@ -1,6 +1,8 @@
 import logging
 from typing import Mapping, List, Any
 
+from core.sync import get_cert_store_type
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -127,7 +129,7 @@ def _get_subject(annotations, name, common_name, namespace) -> Mapping[str, List
 
 
 def _get_keystores(keystore) -> Mapping[str, Mapping[str, Any]]:
-    keystore_type = _get_keystore_type(keystore)
+    keystore_type = get_cert_store_type(keystore)
     password_secret_ref_name = keystore[keystore_type]["passwordSecretRef"]
 
     return {
@@ -147,10 +149,6 @@ def _get_annotation_vals_as_list(annotation_val) -> List[str]:
         if annotation_val
         else []
     )
-
-
-def _get_keystore_type(keystore) -> str:
-    return "jks" if "jks" in keystore else "pkcs12"
 
 
 def sync_certificate(body) -> Mapping[str, List[Mapping[str, Any]]]:

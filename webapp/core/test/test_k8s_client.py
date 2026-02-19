@@ -1,6 +1,6 @@
 import pytest
 from kubernetes import client
-from core.k8s_client import _create_integration_route, _create_route_configmap
+from core.k8s_client import _create_integration_route, _create_route_configmap, create_route_resources
 from models import RouteData, Resource, Status
 from kubernetes.client.rest import ApiException
 
@@ -62,8 +62,8 @@ def test_create_integration_route_creates_new(route_data, mock_api):
 
 
 def test_create_integration_route_updates_existing(route_data, mock_api):
-    """When an IntegrationRoute exists the function should recreate it."""
-    existing_ir = {"metadata": {"name": "old-ir"}}
+    """When an IntegrationRoute exists the function should patch it."""
+    existing_ir = {"metadata": {"name": route_data.route_name}}
     mock_api["route_api"].list_namespaced_custom_object.return_value = {
         "items": [existing_ir]
     }
@@ -71,18 +71,12 @@ def test_create_integration_route_updates_existing(route_data, mock_api):
     res: Resource = _create_integration_route(route_data, f"{route_data.route_name}-cm")
 
     assert res.name == route_data.route_name
-    assert res.status == Status.RECREATED
+    assert res.status == Status.UPDATED
+    mock_api["route_api"].patch_namespaced_custom_object.assert_called_once()
 
 
-def test_create_integration_route_cluster_not_reachable(route_data, mocker):
-    """When the cluster is not reachable, create_integration_route should raise an ApiException."""
+def test_create_route_resources_cluster_not_reachable(route_data, mocker):
+    """When the cluster is not reachable, create_route_resources should raise an ApiException."""
     mocker.patch("core.k8s_client._check_cluster_reachable", return_value=False)
     with pytest.raises(ApiException):
-        _create_integration_route(route_data, "configmap-name")
-
-
-def test_create_route_configmap_cluster_not_reachable(route_data, mocker):
-    """When the cluster is not reachable, create_route_configmap should raise an ApiException."""
-    mocker.patch("core.k8s_client._check_cluster_reachable", return_value=False)
-    with pytest.raises(ApiException):
-        _create_route_configmap(route_data)
+        create_route_resources(route_data)

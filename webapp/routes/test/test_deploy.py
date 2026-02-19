@@ -1,6 +1,7 @@
 import pytest
 import copy
 import json
+import os
 from starlette.applications import Starlette
 from starlette.routing import Route
 from starlette.testclient import TestClient
@@ -30,7 +31,8 @@ def test_client():
 
 
 resources = [Resource(name="my-route", status=Status.CREATED)]
-with open("./routes/test/json/deploy-request-body.json", "r") as f:
+_TEST_DIR = os.path.dirname(os.path.abspath(__file__))
+with open(os.path.join(_TEST_DIR, "json/deploy-request-body.json"), "r") as f:
     body = json.load(f)
 
 
@@ -77,13 +79,6 @@ def test_deploy_malformed_json(mock_k8s_client, test_client):
     result = res.json()
     assert result["status"] == "error"
 
-
-@pytest.mark.parametrize("content_type", ["application/xml", ""])
-def test_deploy_route_invalid_content_type(mock_k8s_client, test_client, content_type):
-    res = test_client.put("/route", headers={"content-type": content_type}, json=body)
-
-    assert res.status_code == 400
-    assert "No Integration Route XML file found in form data" in res.text
 
 
 def test_deploy_route_missing_body(mock_k8s_client, test_client):

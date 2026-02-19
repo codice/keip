@@ -29,6 +29,12 @@
           },
           "spec": {
             "serviceAccountName": "integrationroute-service",
+            "securityContext": {
+              "runAsNonRoot": true,
+              "seccompProfile": {
+                "type": "RuntimeDefault"
+              }
+            },
             "containers": [
               {
                 "name": "integration-app",
@@ -39,7 +45,7 @@
                     "mountPath": "/var/spring/xml"
                   },
                   {
-                    "name": "testroute-secret",
+                    "name": "secret-testroute-secret",
                     "readOnly": true,
                     "mountPath": "/etc/secrets/testroute-secret"
                   },
@@ -105,7 +111,7 @@
                 }
               },
               {
-                "name": "testroute-secret",
+                "name": "secret-testroute-secret",
                 "secret": {
                   "secretName": "testroute-secret"
                 }

@@ -1,4 +1,5 @@
-import logging.config
+import asyncio
+import logging
 import json
 
 from dataclasses import asdict
@@ -11,23 +12,20 @@ from starlette.requests import Request
 
 from models import RouteData, RouteRequest
 from core import k8s_client
-from logconf import LOG_CONF
 
 
-logging.config.dictConfig(LOG_CONF)
 _LOGGER = logging.getLogger(__name__)
 
 
 async def deploy_route(request: Request):
     """
-    Handles the deployment of an integration route via an XML file upload.
+    Handles the deployment of an integration route.
 
     The endpoint accepts a PUT request with a JSON payload containing the XML of multiple Integration Routes.
-    It validates the file content type, extracts the route name from the filename,
-    and creates Kubernetes resources for the route using the provided XML configuration.
+    It creates Kubernetes resources for the route using the provided XML configuration.
 
     Args:
-        request (Request): The incoming HTTP request containing the form data.
+        request (Request): The incoming HTTP request.
         The request body is a JSON payload containing a list of integration routes.
         {
             "routes": [
@@ -44,8 +42,6 @@ async def deploy_route(request: Request):
         JSONResponse: A 201 status code response with the created resources in JSON format.
 
     Raises:
-        HTTPException: If the upload file is missing or has an invalid content type.
-        UnicodeDecodeError: If the XML file cannot be decoded properly.
         HTTPException: If an unexpected error occurs during processing.
     """
     _LOGGER.info("Received deployment request")
@@ -53,25 +49,21 @@ async def deploy_route(request: Request):
         body = await request.json()
         route_request = RouteRequest(**body)
 
-        content_type = request.headers["content-type"]
-        if content_type != "application/json":
-            _LOGGER.warning("Invalid content type: '%s'", content_type)
-            raise HTTPException(
-                status_code=400,
-                detail="No Integration Route XML file found in form data",
-            )
-        created_resources = []
-        for route in route_request.routes:
+        async def _deploy_single_route(route):
             route_data = RouteData(
                 route_name=route.name,
                 route_xml=route.xml,
                 namespace=route.namespace,
             )
-
             _LOGGER.info("Creating resources for route: %s", route_data.route_name)
-            created_resources = k8s_client.create_route_resources(route_data)
+            return await asyncio.to_thread(
+                k8s_client.create_route_resources, route_data
+            )
 
-            _LOGGER.debug("Created new resources: %s", created_resources)
+        results = await asyncio.gather(
+            *[_deploy_single_route(route) for route in route_request.routes]
+        )
+        created_resources = [r for result in results for r in result]
         return JSONResponse(
             [asdict(resource) for resource in created_resources], status_code=201
         )

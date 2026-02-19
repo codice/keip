@@ -12,5 +12,8 @@ pip-log.txt
 
 # Local directives
 .venv
+venv
 test
 requirements-dev.txt
+.test_coverage
+Makefile

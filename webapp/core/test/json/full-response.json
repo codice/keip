@@ -36,6 +36,12 @@
           },
           "spec": {
             "serviceAccountName": "integrationroute-service",
+            "securityContext": {
+              "runAsNonRoot": true,
+              "seccompProfile": {
+                "type": "RuntimeDefault"
+              }
+            },
             "containers": [
               {
                 "name": "integration-app",
@@ -46,20 +52,20 @@
                     "mountPath": "/var/spring/xml"
                   },
                   {
-                    "name": "testroute-secret",
+                    "name": "secret-testroute-secret",
                     "readOnly": true,
                     "mountPath": "/etc/secrets/testroute-secret"
                   },
                   {
-                    "name": "testroute-pvc",
+                    "name": "pvc-testroute-pvc",
                     "mountPath": "/tmp/testdir"
                   },
                   {
-                    "name": "test-cm-1",
+                    "name": "cm-test-cm-1",
                     "mountPath": "/path/to/cm1"
                   },
                   {
-                    "name": "test-cm-2",
+                    "name": "cm-test-cm-2",
                     "mountPath": "/path/to/cm2"
                   },
                   {
@@ -162,25 +168,25 @@
                 }
               },
               {
-                "name": "testroute-secret",
+                "name": "secret-testroute-secret",
                 "secret": {
                   "secretName": "testroute-secret"
                 }
               },
               {
-                "name": "testroute-pvc",
+                "name": "pvc-testroute-pvc",
                 "persistentVolumeClaim": {
                   "claimName": "testroute-pvc"
                 }
               },
               {
-                "name": "test-cm-1",
+                "name": "cm-test-cm-1",
                 "configMap": {
                   "name": "test-cm-1"
                 }
               },
               {
-                "name": "test-cm-2",
+                "name": "cm-test-cm-2",
                 "configMap": {
                   "name": "test-cm-2"
                 }

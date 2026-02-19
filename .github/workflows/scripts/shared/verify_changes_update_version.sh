@@ -15,7 +15,11 @@ GREP_FILTER_STDERR_OUTPUT="/tmp/diff_grep_filter_stderr"
 
 main() {
   # github actions job does not fetch other git objects by default
-  git fetch origin $GITHUB_BASE_REF
+  if [ -z "$GITHUB_BASE_REF" ]; then
+    echo "ERROR: GITHUB_BASE_REF is not set"
+    exit 1
+  fi
+  git fetch origin "$GITHUB_BASE_REF"
   git fetch --tags
 
   # if 'grep -v' (inverted-match) matches all the file-paths in the list, an error code is returned, which immediately
@@ -23,7 +27,7 @@ main() {
   # checking if a release is required. A '|| true' is added at the end of the command to force a non-error return code.
   # To still be able to catch any unexpected errors with the 'grep' command, stderr is piped to a file that is later
   # checked for errors.
-  filtered_changes=$(git diff --name-only origin/$GITHUB_BASE_REF -- $DIRECTORY | grep -E -v \
+  filtered_changes=$(git diff --name-only "origin/$GITHUB_BASE_REF" -- "$DIRECTORY" | grep -E -v \
                                                                             -e 'test/'  \
                                                                             -e 'requirements-dev\.txt$' \
                                                                             -e '\.md$' \
@@ -37,7 +41,7 @@ main() {
     exit 1
   fi
 
-  echo "Comparing current branch and $GITHUB_BASE_REF at directory: ${DIRECTORY}"
+  echo "Comparing current branch and $GITHUB_BASE_REF at directory: $DIRECTORY"
 
   if [ -n "$filtered_changes" ]; then
     echo "$filtered_changes"

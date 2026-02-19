@@ -3,6 +3,7 @@ from kubernetes import config, client
 from kubernetes.client.rest import ApiException
 import logging
 import os
+import threading
 
 from models import RouteData, Resource, Status
 
@@ -14,28 +15,37 @@ WEBHOOK_CONTROLLER_PREFIX = "integrationroute-webhook"
 
 _LOGGER = logging.getLogger(__name__)
 
+_lock = threading.Lock()
 _configured = False
+_config_failed = False
 v1 = None
 routeApi = None
 
 
 def _ensure_configured():
-    global _configured, v1, routeApi
+    global _configured, _config_failed, v1, routeApi
     if _configured:
         return
-    try:
-        (
-            config.load_kube_config(os.getenv("KUBECONFIG"))
-            if os.getenv("KUBECONFIG")
-            else config.load_incluster_config()
-        )
-    except config.ConfigException:
-        _LOGGER.error(
-            msg="Failed to configure the k8s_client. keip will be unable to deploy integration routes.",
-        )
-    v1 = client.CoreV1Api()
-    routeApi = client.CustomObjectsApi()
-    _configured = True
+    if _config_failed:
+        return
+    with _lock:
+        if _configured or _config_failed:
+            return
+        try:
+            (
+                config.load_kube_config(os.getenv("KUBECONFIG"))
+                if os.getenv("KUBECONFIG")
+                else config.load_incluster_config()
+            )
+        except config.ConfigException:
+            _LOGGER.error(
+                msg="Failed to configure the k8s_client. keip will be unable to deploy integration routes.",
+            )
+            _config_failed = True
+            return
+        v1 = client.CoreV1Api()
+        routeApi = client.CustomObjectsApi()
+        _configured = True
 
 
 def _check_cluster_reachable() -> bool:
@@ -51,6 +61,8 @@ def _check_cluster_reachable() -> bool:
         bool: True if the cluster is reachable, False otherwise.
     """
     _ensure_configured()
+    if v1 is None:
+        return False
     try:
         v1.get_api_resources()
         return True
@@ -60,19 +72,6 @@ def _check_cluster_reachable() -> bool:
 
 def _create_integration_route(route_data: RouteData, configmap_name: str) -> Resource:
     """Create or update a new Integration Route with the provided configmap"""
-    if not _check_cluster_reachable():
-        raise ApiException(
-            status=500,
-            reason="Kubernetes cluster not reachable. Verify the cluster is running",
-        )
-
-    existing_route = routeApi.list_namespaced_custom_object(
-        group=ROUTE_API_GROUP,
-        version=ROUTE_API_VERSION,
-        namespace=route_data.namespace,
-        plural=ROUTE_PLURAL,
-        field_selector=f"metadata.name={route_data.route_name}",
-    )
 
     body = {
         "apiVersion": "keip.codice.org/v1alpha2",
@@ -84,20 +83,25 @@ def _create_integration_route(route_data: RouteData, configmap_name: str) -> Res
         "spec": {"routeConfigMap": configmap_name},
     }
 
-    status = Status.CREATED
+    existing_route = routeApi.list_namespaced_custom_object(
+        group=ROUTE_API_GROUP,
+        version=ROUTE_API_VERSION,
+        namespace=route_data.namespace,
+        plural=ROUTE_PLURAL,
+        field_selector=f"metadata.name={route_data.route_name}",
+    )
 
     if existing_route["items"]:
-        # Delete existing route
-        routeApi.delete_namespaced_custom_object(
+        routeApi.patch_namespaced_custom_object(
             group=ROUTE_API_GROUP,
             version=ROUTE_API_VERSION,
             namespace=route_data.namespace,
             plural=ROUTE_PLURAL,
-            name=existing_route["items"][0]["metadata"]["name"],
+            name=route_data.route_name,
+            body=body,
         )
-        status = Status.RECREATED
+        return Resource(status=Status.UPDATED, name=route_data.route_name)
 
-    # Create new route
     routeApi.create_namespaced_custom_object(
         group=ROUTE_API_GROUP,
         version=ROUTE_API_VERSION,
@@ -105,8 +109,7 @@ def _create_integration_route(route_data: RouteData, configmap_name: str) -> Res
         plural=ROUTE_PLURAL,
         body=body,
     )
-
-    return Resource(status=status, name=route_data.route_name)
+    return Resource(status=Status.CREATED, name=route_data.route_name)
 
 
 def _create_route_configmap(route_data: RouteData) -> Resource:
@@ -126,12 +129,6 @@ def _create_route_configmap(route_data: RouteData) -> Resource:
         ApiException: If the Kubernetes cluster is unreachable or if there is an error during the API call.
         Exception: If an unexpected error occurs during processing.
     """
-    if not _check_cluster_reachable():
-        raise ApiException(
-            status=500,
-            reason="Kubernetes cluster not reachable. Verify the cluster is running",
-        )
-
     configmap_name = f"{route_data.route_name}-cm"
     configmap = client.V1ConfigMap(
         metadata=client.V1ObjectMeta(
@@ -197,6 +194,12 @@ def create_route_resources(route_data: RouteData) -> Tuple[Resource, Resource]:
         ApiException: If the Kubernetes cluster is unreachable or if there is an error during API calls.
         Exception: If an unexpected error occurs during processing or resource creation.
     """
+    if not _check_cluster_reachable():
+        raise ApiException(
+            status=500,
+            reason="Kubernetes cluster not reachable. Verify the cluster is running",
+        )
+
     route_cm = _create_route_configmap(route_data=route_data)
     route = _create_integration_route(
         route_data=route_data, configmap_name=route_cm.name

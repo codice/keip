@@ -16,7 +16,7 @@ from addons.certmanager.main import sync_certificate
 _LOGGER = logging.getLogger(__name__)
 
 
-def _with_cors(app: Starlette, origins_env: str):
+def _with_cors(app: Starlette, origins_env: str) -> ASGIApp:
     origins = [s for part in origins_env.split(",") if (s := part.strip())]
     if not origins:
         _LOGGER.warning(

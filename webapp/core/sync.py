@@ -74,25 +74,27 @@ class VolumeConfig:
 
         for secret in self._secret_srcs:
             secret_name = secret["name"]
-            volumes.append({"name": secret_name, "secret": {"secretName": secret_name}})
+            volumes.append(
+                {"name": f"secret-{secret_name}", "secret": {"secretName": secret_name}}
+            )
 
         for pvc_spec in self._pvcs:
             volumes.append(
                 {
-                    "name": pvc_spec["claimName"],
+                    "name": f"pvc-{pvc_spec['claimName']}",
                     "persistentVolumeClaim": {"claimName": pvc_spec["claimName"]},
                 }
             )
 
         for cm_spec in self._config_maps:
             volumes.append(
-                {"name": cm_spec["name"], "configMap": {"name": cm_spec["name"]}}
+                {"name": f"cm-{cm_spec['name']}", "configMap": {"name": cm_spec["name"]}}
             )
 
         if self._tls_config:
             truststore = self._tls_config.get("truststore")
             if truststore:
-                truststore_type = _get_tls_cert_store_type(truststore)
+                truststore_type = get_cert_store_type(truststore)
                 volumes.append(
                     {
                         "name": self._tls_truststore_name,
@@ -110,7 +112,7 @@ class VolumeConfig:
 
             keystore = self._tls_config.get("keystore")
             if keystore:
-                keystore_type = _get_tls_cert_store_type(keystore)
+                keystore_type = get_cert_store_type(keystore)
                 volumes.append(
                     {
                         "name": self._tls_keystore_name,
@@ -140,7 +142,7 @@ class VolumeConfig:
             secret_name = secret["name"]
             volume_mounts.append(
                 {
-                    "name": secret_name,
+                    "name": f"secret-{secret_name}",
                     "readOnly": True,
                     "mountPath": str(PurePosixPath(SECRETS_ROOT, secret_name)),
                 }
@@ -149,7 +151,7 @@ class VolumeConfig:
         for pvc_spec in self._pvcs:
             volume_mounts.append(
                 {
-                    "name": pvc_spec["claimName"],
+                    "name": f"pvc-{pvc_spec['claimName']}",
                     "mountPath": pvc_spec["mountPath"],
                 }
             )
@@ -157,7 +159,7 @@ class VolumeConfig:
         for cm_spec in self._config_maps:
             volume_mounts.append(
                 {
-                    "name": cm_spec["name"],
+                    "name": f"cm-{cm_spec['name']}",
                     "mountPath": cm_spec["mountPath"],
                 }
             )
@@ -191,16 +193,20 @@ def _spring_cloud_k8s_config(parent) -> Optional[Mapping]:
     if not props_srcs and not secret_srcs:
         return None
 
-    return {
+    k8s_config = {
         "kubernetes": {
             "config": {
                 "fail-fast": True,
                 "namespace": metadata["namespace"],
-                "sources": props_srcs,
             },
             "secrets": {"paths": SECRETS_ROOT},
         }
     }
+
+    if props_srcs:
+        k8s_config["kubernetes"]["config"]["sources"] = props_srcs
+
+    return k8s_config
 
 
 def _get_server_ssl_config(parent) -> Optional[Mapping]:
@@ -240,11 +246,12 @@ def _service_name_env_var(parent) -> Mapping[str, str]:
     return {"name": "SERVICE_NAME", "value": parent["metadata"]["name"]}
 
 
-def _get_tls_cert_store_type(tls_cert_store) -> str:
-    return "jks" if "jks" in tls_cert_store else "pkcs12"
+def get_cert_store_type(cert_store) -> str:
+    """Determine if a cert store config is JKS or PKCS12."""
+    return "jks" if "jks" in cert_store else "pkcs12"
 
 
-def _spring_app_config_env_var(parent) -> Optional[Mapping]:
+def _spring_app_config_env_var(parent) -> Mapping:
     metadata = parent["metadata"]
     app_config = {
         "spring": {
@@ -273,7 +280,7 @@ def _get_keystore_password_env(tls) -> Mapping[str, Any]:
     if not keystore:
         return {}
 
-    keystore_type = _get_tls_cert_store_type(keystore)
+    keystore_type = get_cert_store_type(keystore)
 
     return {
         "name": "SERVER_SSL_KEYSTOREPASSWORD",
@@ -292,7 +299,7 @@ def _get_java_jdk_options(tls) -> Optional[Mapping[str, str]]:
     if not truststore:
         return None
 
-    truststore_type = _get_tls_cert_store_type(truststore)
+    truststore_type = get_cert_store_type(truststore)
     truststore_password = "changeit" if truststore_type == "jks" else ""
 
     return {
@@ -304,8 +311,7 @@ def _get_java_jdk_options(tls) -> Optional[Mapping[str, str]]:
 def _generate_container_env_vars(parent) -> List[Mapping[str, str]]:
     env_vars = []
 
-    if spring_app_config := _spring_app_config_env_var(parent):
-        env_vars.append(spring_app_config)
+    env_vars.append(_spring_app_config_env_var(parent))
 
     if tls := parent["spec"].get("tls"):
         if jdk_options := _get_java_jdk_options(tls):
@@ -333,6 +339,10 @@ def _create_pod_template(parent, labels, integration_image) -> Mapping[str, Any]
         "metadata": {"labels": labels},
         "spec": {
             "serviceAccountName": "integrationroute-service",
+            "securityContext": {
+                "runAsNonRoot": True,
+                "seccompProfile": {"type": "RuntimeDefault"},
+            },
             "containers": [
                 {
                     "name": "integration-app",
@@ -397,7 +407,12 @@ def _new_deployment(parent):
         "app.kubernetes.io/name": parent_metadata["name"],
     }
 
-    labels = autogenerated_labels | parent["spec"].get("labels", {})
+    user_labels = {
+        k: v
+        for k, v in parent["spec"].get("labels", {}).items()
+        if not k.startswith("app.kubernetes.io/")
+    }
+    labels = autogenerated_labels | user_labels
 
     deployment = {
         "apiVersion": "apps/v1",
@@ -480,7 +495,9 @@ def _compute_status(parent: Mapping, children: Mapping) -> Mapping:
     ready_replicas = deployment_status.get("readyReplicas", 0)
 
     available_conditions = [
-        c for c in deployment_status["conditions"] if c["type"] == "Available"
+        c
+        for c in deployment_status.get("conditions", [])
+        if c["type"] == "Available"
     ]
 
     ready_conditions = [
@@ -505,7 +522,11 @@ def _get_status_ready_condition(
     condition_type = "Ready"
 
     ready_condition_list = (
-        [c for c in parent_status["conditions"] if c["type"] == condition_type]
+        [
+            c
+            for c in parent_status.get("conditions", [])
+            if c["type"] == condition_type
+        ]
         if parent_status
         else []
     )

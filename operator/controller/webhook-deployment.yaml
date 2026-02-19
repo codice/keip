@@ -5,22 +5,60 @@ metadata:
   name: integrationroute-webhook
   namespace: keip
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
-      app: integrationroute-webhook
+      app.kubernetes.io/name: integrationroute-webhook
   template:
     metadata:
       labels:
-        app: integrationroute-webhook
+        app.kubernetes.io/name: integrationroute-webhook
+        app.kubernetes.io/component: webhook
+        app.kubernetes.io/managed-by: keip
+        app.kubernetes.io/part-of: keip
     spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: integrationroute-webhook
       serviceAccountName: keip-controller-service
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: webhook
           image: ghcr.io/codice/keip/webapp:0.18.0
           ports:
             - containerPort: 7080
               name: webhook-http
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: webhook-http
+            initialDelaySeconds: 5
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: webhook-http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          startupProbe:
+            httpGet:
+              path: /status
+              port: webhook-http
+            failureThreshold: 10
+            periodSeconds: 3
           env:
             - name: INTEGRATION_IMAGE
               valueFrom:
@@ -32,8 +70,20 @@ spec:
           resources:
             requests:
               cpu: "100m"
-            limits:
               memory: "128Mi"
+            limits:
+              memory: "256Mi"
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: integrationroute-webhook
+  namespace: keip
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: integrationroute-webhook
 ---
 apiVersion: v1
 kind: Service
@@ -42,7 +92,7 @@ metadata:
   namespace: keip
 spec:
   selector:
-    app: integrationroute-webhook
+    app.kubernetes.io/name: integrationroute-webhook
   ports:
     - port: 80
       targetPort: webhook-http

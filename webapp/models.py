@@ -16,8 +16,8 @@ class Status(str, Enum):
 
 class Route(BaseModel):
     name: str = Field(min_length=1, max_length=253)
-    namespace: str = "default"
-    xml: str
+    namespace: str = Field(default="default", min_length=1, max_length=63, pattern=r"^[a-z0-9]([a-z0-9-]*[a-z0-9])?$")
+    xml: str = Field(min_length=1, max_length=1_048_576)
 
     @field_validator("name", mode="before")
     @classmethod

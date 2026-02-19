@@ -4,7 +4,7 @@ import os
 
 def get_log_level_from_env():
     level = os.getenv("LOG_LEVEL", "").upper()
-    if level in logging.getLevelNamesMapping().keys():
+    if level in logging.getLevelNamesMapping():
         return level
     return "INFO"
 

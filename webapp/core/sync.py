@@ -341,6 +341,7 @@ def _create_pod_template(parent, labels, integration_image) -> Mapping[str, Any]
             "serviceAccountName": "integrationroute-service",
             "securityContext": {
                 "runAsNonRoot": True,
+                "runAsUser": 999,
                 "seccompProfile": {"type": "RuntimeDefault"},
             },
             "containers": [

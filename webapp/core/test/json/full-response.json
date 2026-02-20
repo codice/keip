@@ -38,6 +38,7 @@
             "serviceAccountName": "integrationroute-service",
             "securityContext": {
               "runAsNonRoot": true,
+              "runAsUser": 999,
               "seccompProfile": {
                 "type": "RuntimeDefault"
               }

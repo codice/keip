@@ -341,6 +341,8 @@ def _create_pod_template(parent, labels, integration_image) -> Mapping[str, Any]
             "serviceAccountName": "integrationroute-service",
             "securityContext": {
                 "runAsNonRoot": True,
+                "runAsUser": 999,
+                "fsGroup": 999,
                 "seccompProfile": {"type": "RuntimeDefault"},
             },
             "containers": [
@@ -372,7 +374,7 @@ def _create_pod_template(parent, labels, integration_image) -> Mapping[str, Any]
                             "port": management_port,
                             "scheme": scheme,
                         },
-                        "failureThreshold": 12,
+                        "failureThreshold": 24,
                         "timeoutSeconds": 3,
                     },
                 },

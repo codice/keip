@@ -1,4 +1,4 @@
-VERSION ?= 0.16.0
+VERSION ?= 0.17.0
 GIT_TAG := operator_v$(VERSION)
 
 KUBECTL := kubectl

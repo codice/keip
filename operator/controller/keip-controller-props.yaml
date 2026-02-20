@@ -4,4 +4,4 @@ metadata:
   name: keip-controller-props
   namespace: keip
 data:
-  integration-image: "ghcr.io/codice/keip/keip-integration:0.5.0"
+  integration-image: "ghcr.io/codice/keip/keip-integration:0.6.0"

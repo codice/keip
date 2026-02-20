@@ -32,6 +32,7 @@
             "securityContext": {
               "runAsNonRoot": true,
               "runAsUser": 999,
+              "fsGroup": 999,
               "seccompProfile": {
                 "type": "RuntimeDefault"
               }
@@ -80,7 +81,7 @@
                     "port": 8443,
                     "scheme": "HTTPS"
                   },
-                  "failureThreshold": 12,
+                  "failureThreshold": 24,
                   "timeoutSeconds": 3
                 },
                 "env": [

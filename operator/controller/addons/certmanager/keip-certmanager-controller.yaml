@@ -5,7 +5,7 @@ metadata:
   name: keip-certmanager-controller
 spec:
   resources:
-    - apiVersion: keip.codice.org/v1alpha1
+    - apiVersion: keip.codice.org/v1alpha2
       resource: integrationroutes
   attachments:
     - apiVersion: cert-manager.io/v1

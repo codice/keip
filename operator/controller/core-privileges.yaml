@@ -23,7 +23,7 @@ subjects:
 roleRef:
   kind: Role
   name: spring-cloud-kubernetes
-  apiGroup: ""
+  apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -37,14 +37,11 @@ metadata:
   name: controller-kubernetes-manager
 rules:
   - apiGroups: [""]
-    resources: ["pods"]
-    verbs: ["get", "list", "watch"]
-  - apiGroups: [""]
     resources: ["configmaps"]
-    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+    verbs: ["list", "create", "update"]
   - apiGroups: ["keip.codice.org"]
     resources: ["integrationroutes"]
-    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+    verbs: ["list", "create", "patch"]
 ---
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
@@ -58,4 +55,4 @@ subjects:
 roleRef:
   kind: ClusterRole
   name: controller-kubernetes-manager
-  apiGroup: ""
+  apiGroup: rbac.authorization.k8s.io

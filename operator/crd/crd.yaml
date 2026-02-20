@@ -10,9 +10,14 @@ spec:
     singular: integrationroute
     shortNames:
       - ir
+    categories:
+      - keip
+      - all
   scope: Namespaced
+  conversion:
+    strategy: None
   versions:
-    - name: v1alpha1
+    - name: v1alpha2
       served: true
       storage: true
       additionalPrinterColumns:
@@ -22,9 +27,9 @@ spec:
         - name: Replicas
           type: integer
           jsonPath: .status.expectedReplicas
-        - name: Deployment
+        - name: Route ConfigMap
           type: string
-          jsonPath: .metadata.name
+          jsonPath: .spec.routeConfigMap
         - name: Age
           type: date
           jsonPath: .metadata.creationTimestamp
@@ -33,6 +38,7 @@ spec:
           type: object
           properties:
             spec:
+              description: "Desired state of the IntegrationRoute deployment"
               type: object
               properties:
                 annotations:
@@ -55,23 +61,29 @@ spec:
                     type: object
                     properties:
                       name:
+                        description: "Name of the ConfigMap to use as a PropertySource"
                         type: string
                       labels:
+                        description: "Label selector to match ConfigMaps to use as PropertySources"
                         type: object
                         additionalProperties:
                           type: string
                     oneOf:
-                      - properties:
-                        required:
+                      - required:
                           - name
-                      - properties:
-                        required:
+                      - required:
                           - labels
                 secretSources:
-                  description: "List of names referencing Secrets that will be mounted into the integration route container and included as Spring PropertySources. The Secrets should be in the same namespace as the IntegrationRoute resource"
+                  description: "List of Secrets that will be mounted into the integration route container and included as Spring PropertySources. The Secrets should be in the same namespace as the IntegrationRoute resource"
                   type: array
                   items:
-                    type: string
+                    type: object
+                    properties:
+                      name:
+                        description: "Name of the Secret"
+                        type: string
+                    required:
+                      - name
                 configMaps:
                   description: "List of configMaps that will be mounted into the integration route container"
                   type: array
@@ -79,9 +91,14 @@ spec:
                     type: object
                     properties:
                       name:
+                        description: "Name of the ConfigMap to mount"
                         type: string
                       mountPath:
+                        description: "Filesystem path where the ConfigMap will be mounted in the container"
                         type: string
+                    required:
+                      - name
+                      - mountPath
                 env:
                   description: "List of environment variables to set in the container (cannot be updated)"
                   type: array
@@ -89,8 +106,10 @@ spec:
                     type: object
                     properties:
                       name:
+                        description: "Name of the environment variable"
                         type: string
                       value:
+                        description: "Value of the environment variable"
                         type: string
                     required:
                       - name
@@ -102,29 +121,33 @@ spec:
                     type: object
                     properties:
                       configMapRef:
+                        description: "Reference to a ConfigMap to populate environment variables from"
                         type: object
                         properties:
                           name:
+                            description: "Name of the ConfigMap"
                             type: string
                           optional:
+                            description: "Whether the ConfigMap must exist"
                             type: boolean
                         required:
                           - name
                       secretRef:
+                        description: "Reference to a Secret to populate environment variables from"
                         type: object
                         properties:
                           name:
+                            description: "Name of the Secret"
                             type: string
                           optional:
+                            description: "Whether the Secret must exist"
                             type: boolean
                         required:
                           - name
                     oneOf:
-                      - properties:
-                        required:
+                      - required:
                           - configMapRef
-                      - properties:
-                        required:
+                      - required:
                           - secretRef
                 resources:
                   description: "Compute resources given to the route containers. Follows https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#resource-requests-and-limits-of-pod-and-container"
@@ -150,7 +173,7 @@ spec:
                   description: "Number of pods running the integration route"
                   type: integer
                   minimum: 1
-                  maximum: 20 # TODO: Figure out a reasonable maximum
+                  maximum: 20
                   default: 1
                 persistentVolumeClaims:
                   description: "List with the names of PersistentVolumeClaims and their mountPaths on the pod container"
@@ -198,11 +221,9 @@ spec:
                             - configMapName
                             - key
                       oneOf:
-                        - properties:
-                          required:
+                        - required:
                             - jks
-                        - properties:
-                          required:
+                        - required:
                             - pkcs12
                     keystore:
                       description: "Configures HTTP server TLS connections using a JKS or PKCS12 keystore. The keystore password should be stored in a Secret resource and referenced in the route's Custom Resource. The format of the Secret is `password=<password>`."
@@ -244,15 +265,14 @@ spec:
                             - key
                             - passwordSecretRef
                       oneOf:
-                        - properties:
-                          required:
+                        - required:
                             - jks
-                        - properties:
-                          required:
+                        - required:
                             - pkcs12
               required:
                 - routeConfigMap
             status:
+              description: "Observed state of the IntegrationRoute deployment"
               type: object
               properties:
                 conditions:
@@ -260,6 +280,9 @@ spec:
                     List of status conditions to indicate the status of IntegrationRoute Deployments.
                     Known condition types are `Ready` and `Available`.
                   type: array
+                  x-kubernetes-list-type: map
+                  x-kubernetes-list-map-keys:
+                    - type
                   items:
                     type: object
                     required:
@@ -309,3 +332,320 @@ spec:
       subresources:
         # Enables adding status information to CustomResource
         status: { }
+        scale:
+          specReplicasPath: .spec.replicas
+          statusReplicasPath: .status.runningReplicas
+    - name: v1alpha1
+      served: false
+      storage: false
+      deprecated: true
+      deprecationWarning: "keip.codice.org/v1alpha1 IntegrationRoute is deprecated; use keip.codice.org/v1alpha2 instead"
+      additionalPrinterColumns:
+        - name: Ready
+          type: string
+          jsonPath: .status.conditions[?(@.type=="Ready")].status
+        - name: Replicas
+          type: integer
+          jsonPath: .status.expectedReplicas
+        - name: Route ConfigMap
+          type: string
+          jsonPath: .spec.routeConfigMap
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              description: "Desired state of the IntegrationRoute deployment"
+              type: object
+              properties:
+                annotations:
+                  description: "Annotations to add to the IntegrationRoute pod and deployment templates"
+                  type: object
+                  additionalProperties:
+                    type: string
+                labels:
+                  description: "Labels to add to the IntegrationRoute pod and deployment templates"
+                  type: object
+                  additionalProperties:
+                    type: string
+                routeConfigMap:
+                  description: "Name of a ConfigMap containing integration route definitions. The ConfigMap should be in the same namespace as the IntegrationRoute resource"
+                  type: string
+                propSources:
+                  description: "List of names or labels referencing ConfigMap sources that will be included as Spring PropertySources. The ConfigMaps should be in the same namespace as the IntegrationRoute resource"
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        description: "Name of the ConfigMap to use as a PropertySource"
+                        type: string
+                      labels:
+                        description: "Label selector to match ConfigMaps to use as PropertySources"
+                        type: object
+                        additionalProperties:
+                          type: string
+                    oneOf:
+                      - required:
+                          - name
+                      - required:
+                          - labels
+                secretSources:
+                  description: "List of Secret names that will be mounted into the integration route container and included as Spring PropertySources. The Secrets should be in the same namespace as the IntegrationRoute resource"
+                  type: array
+                  items:
+                    type: string
+                configMaps:
+                  description: "List of configMaps that will be mounted into the integration route container"
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        description: "Name of the ConfigMap to mount"
+                        type: string
+                      mountPath:
+                        description: "Filesystem path where the ConfigMap will be mounted in the container"
+                        type: string
+                    required:
+                      - name
+                      - mountPath
+                env:
+                  description: "List of environment variables to set in the container (cannot be updated)"
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        description: "Name of the environment variable"
+                        type: string
+                      value:
+                        description: "Value of the environment variable"
+                        type: string
+                    required:
+                      - name
+                      - value
+                envFrom:
+                  description: "List of sources to populate environment variables in the container (cannot be updated)"
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      configMapRef:
+                        description: "Reference to a ConfigMap to populate environment variables from"
+                        type: object
+                        properties:
+                          name:
+                            description: "Name of the ConfigMap"
+                            type: string
+                          optional:
+                            description: "Whether the ConfigMap must exist"
+                            type: boolean
+                        required:
+                          - name
+                      secretRef:
+                        description: "Reference to a Secret to populate environment variables from"
+                        type: object
+                        properties:
+                          name:
+                            description: "Name of the Secret"
+                            type: string
+                          optional:
+                            description: "Whether the Secret must exist"
+                            type: boolean
+                        required:
+                          - name
+                    oneOf:
+                      - required:
+                          - configMapRef
+                      - required:
+                          - secretRef
+                resources:
+                  description: "Compute resources given to the route containers. Follows https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#resource-requests-and-limits-of-pod-and-container"
+                  type: object
+                  properties:
+                    limits:
+                      description: "Limits describe the maximum amount of compute and memory resources allowed."
+                      type: object
+                      properties:
+                        cpu:
+                          type: string
+                        memory:
+                          type: string
+                    requests:
+                      description: "Requests describe the minimum amount of compute and memory resources required."
+                      type: object
+                      properties:
+                        cpu:
+                          type: string
+                        memory:
+                          type: string
+                replicas:
+                  description: "Number of pods running the integration route"
+                  type: integer
+                  minimum: 1
+                  maximum: 20
+                  default: 1
+                persistentVolumeClaims:
+                  description: "List with the names of PersistentVolumeClaims and their mountPaths on the pod container"
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      claimName:
+                        type: string
+                      mountPath:
+                        type: string
+                    required:
+                      - claimName
+                      - mountPath
+                tls:
+                  description: "Configure server and client TLS connections."
+                  type: object
+                  properties:
+                    truststore:
+                      description: "Configures client TLS connections using a JKS or PKCS12 truststore. A JKS truststore should have its password set to 'changeit', while a PKCS12 truststore should have an empty password."
+                      type: object
+                      properties:
+                        jks:
+                          type: object
+                          properties:
+                            configMapName:
+                              description: "The name of the ConfigMap resource containing the truststore (truststore.jks)."
+                              type: string
+                            key:
+                              description: "The name of the key containing the truststore in the ConfigMap resource (configMapName)."
+                              type: string
+                          required:
+                            - configMapName
+                            - key
+                        pkcs12:
+                          type: object
+                          properties:
+                            configMapName:
+                              description: "The name of the ConfigMap resource containing the truststore (truststore.p12)."
+                              type: string
+                            key:
+                              description: "The name of the key containing the truststore in the ConfigMap resource (configMapName)."
+                              type: string
+                          required:
+                            - configMapName
+                            - key
+                      oneOf:
+                        - required:
+                            - jks
+                        - required:
+                            - pkcs12
+                    keystore:
+                      description: "Configures HTTP server TLS connections using a JKS or PKCS12 keystore. The keystore password should be stored in a Secret resource and referenced in the route's Custom Resource. The format of the Secret is `password=<password>`."
+                      type: object
+                      properties:
+                        jks:
+                          type: object
+                          properties:
+                            alias:
+                              description: "Specifies the unique identifier for the key in the JKS keystore. If not provided, the default alias of `certificate` is used."
+                              type: string
+                            secretName:
+                              description: "The name of the Secret resource containing the keystore (keystore.jks)."
+                              type: string
+                            key:
+                              description: "The name of the key containing the keystore in the Secret resource (secretName)."
+                              type: string
+                            passwordSecretRef:
+                              description: "The reference to the Secret resource containing the password used to encrypt the JKS keystore."
+                              type: string
+                          required:
+                            - secretName
+                            - key
+                            - passwordSecretRef
+                        pkcs12:
+                          type: object
+                          properties:
+                            secretName:
+                              description: "The name of the Secret resource containing the keystore (keystore.p12)."
+                              type: string
+                            key:
+                              description: "The name of the key, containing the keystore, in the Secret resource (secretName)."
+                              type: string
+                            passwordSecretRef:
+                              description: "The reference to the Secret resource containing the password used to encrypt the PKCS12 keystore."
+                              type: string
+                          required:
+                            - secretName
+                            - key
+                            - passwordSecretRef
+                      oneOf:
+                        - required:
+                            - jks
+                        - required:
+                            - pkcs12
+              required:
+                - routeConfigMap
+            status:
+              description: "Observed state of the IntegrationRoute deployment"
+              type: object
+              properties:
+                conditions:
+                  description: |-
+                    List of status conditions to indicate the status of IntegrationRoute Deployments.
+                    Known condition types are `Ready` and `Available`.
+                  type: array
+                  x-kubernetes-list-type: map
+                  x-kubernetes-list-map-keys:
+                    - type
+                  items:
+                    type: object
+                    required:
+                      - status
+                      - type
+                    properties:
+                      lastTransitionTime:
+                        description: |-
+                          LastTransitionTime is the timestamp corresponding to the last status
+                          change of this condition.
+                        type: string
+                        format: date-time
+                      message:
+                        description: |-
+                          A human readable message indicating details about the transition.
+                        type: string
+                      observedGeneration:
+                        description: |-
+                          The generation observed by the IntegrationRoute controller.
+                        type: integer
+                        format: int64
+                      reason:
+                        description: |-
+                          A programmatic identifier indicating the reason for the condition's last transition
+                        type: string
+                      status:
+                        description: Status of the condition, one of (`True`, `False`, `Unknown`).
+                        type: string
+                        enum:
+                          - "True"
+                          - "False"
+                          - Unknown
+                      type:
+                        description: Type of the condition, known values are (`Ready`, `Available`).
+                        type: string
+                expectedReplicas:
+                  description: "Target number of replica pods requested by IntegrationRoute"
+                  type: integer
+                readyReplicas:
+                  description: "number of pods targeted by this IntegrationRoute with a Ready Condition"
+                  type: integer
+                runningReplicas:
+                  description: "Total number of non-terminated pods targeted by this IntegrationRoute"
+                  type: integer
+          required:
+            - spec
+      subresources:
+        # Enables adding status information to CustomResource
+        status: { }
+        scale:
+          specReplicasPath: .spec.replicas
+          statusReplicasPath: .status.runningReplicas

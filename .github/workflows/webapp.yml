@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   pull_request:
     paths:
-      - operator/webapp/**
+      - webapp/**
       - .github/workflows/webapp.yml
       - .github/workflows/scripts
       - '!**.md'
@@ -11,19 +11,22 @@ on:
     branches:
       - main
     paths:
-      - operator/webapp/**
+      - webapp/**
       - '!**.md'
 
 env:
   PYTHON_VERSION: 3.11
-  WORKING_DIR: ./operator/webapp
+  WORKING_DIR: ./webapp
+
+permissions:
+  contents: read
 
 jobs:
   verify-versions:
     if: github.ref != 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - run: sh .github/workflows/scripts/verify_webapp_releasable.sh
         name: Verify webapp is in a state to be released on merge
   test:
@@ -34,8 +37,8 @@ jobs:
         shell: bash
         working-directory: ${{ env.WORKING_DIR }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - run: make test
@@ -48,8 +51,8 @@ jobs:
         shell: bash
         working-directory: ${{ env.WORKING_DIR }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - run: make lint
@@ -64,9 +67,9 @@ jobs:
         shell: bash
         working-directory: ${{ env.WORKING_DIR }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
       - uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
         with:
           context: ${{ env.WORKING_DIR }}
@@ -85,7 +88,7 @@ jobs:
       contents: write # create git tags
       packages: write # push docker images
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - run: |
           REGISTRY=$(make get-registry)
           IMAGE_NAME=$(make get-image-name)
@@ -116,7 +119,7 @@ jobs:
 
       - name: Set up Docker Buildx
         if: env.needs_release == 'true'
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
 
       - uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
         if: env.needs_release == 'true'
@@ -126,7 +129,7 @@ jobs:
           push: true
           tags: ${{ steps.naming-selector.outputs.FULL_IMAGE_NAME }}
 
-      - uses: mathieudutour/github-tag-action@v6.1
+      - uses: mathieudutour/github-tag-action@fcfbdceb3093f6d85a3b194740f8c6cec632f4e2 # v6.1
         if: env.needs_release == 'true'
         id: tag_version
         with:

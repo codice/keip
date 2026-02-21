@@ -432,7 +432,7 @@ def _new_deployment(parent):
             },
             "replicas": parent["spec"]["replicas"],
             "template": _create_pod_template(
-                parent, labels, cfg.INTEGRATION_CONTAINER_IMAGE
+                parent, labels, parent["spec"].get("image", cfg.INTEGRATION_CONTAINER_IMAGE)
             ),
         },
     }

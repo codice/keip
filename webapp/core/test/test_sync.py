@@ -603,3 +603,29 @@ def check_volume_mounts_absent(deployment: Mapping, name: str):
 def get_container(deployment: Mapping) -> Mapping:
     pod_template = deployment["spec"]["template"]
     return pod_template["spec"]["containers"][0]
+
+
+def test_per_route_image_override(full_route):
+    """When spec.image is set, the deployment should use that image instead of the default."""
+    custom_image = "registry.example.com/my-app:1.0"
+    full_route["parent"]["spec"]["image"] = custom_image
+
+    result = sync(full_route)
+
+    deployment = result["children"][0]
+    container = deployment["spec"]["template"]["spec"]["containers"][0]
+    assert container["image"] == custom_image
+
+
+def test_per_route_image_default_when_absent(full_route):
+    """When spec.image is not set, the deployment should use the global default."""
+    # Ensure no image field
+    full_route["parent"]["spec"].pop("image", None)
+
+    result = sync(full_route)
+
+    deployment = result["children"][0]
+    container = deployment["spec"]["template"]["spec"]["containers"][0]
+    # Should use the default from config (INTEGRATION_CONTAINER_IMAGE)
+    import config as cfg
+    assert container["image"] == cfg.INTEGRATION_CONTAINER_IMAGE

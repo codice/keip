@@ -51,6 +51,9 @@ spec:
                   type: object
                   additionalProperties:
                     type: string
+                image:
+                  description: "Container image to use for this IntegrationRoute. Overrides the cluster-wide default integration image set in the controller configuration."
+                  type: string
                 routeConfigMap:
                   description: "Name of a ConfigMap containing integration route definitions. The ConfigMap should be in the same namespace as the IntegrationRoute resource"
                   type: string
